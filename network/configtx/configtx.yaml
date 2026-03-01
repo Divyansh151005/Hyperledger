@@ -1,0 +1,254 @@
+---
+################################################################################
+#
+#   Section: Organizations
+#
+#   - This section defines the different organizational identities which will
+#   be referenced later in the configuration.
+#
+################################################################################
+Organizations:
+
+    # Orderer Organization
+    - &OrdererOrg
+        Name: OrdererMSP
+        ID: OrdererMSP
+        MSPDir: ../crypto-config/ordererOrganizations/medical-network.com/msp
+        Policies:
+            Readers:
+                Type: Signature
+                Rule: "OR('OrdererMSP.member')"
+            Writers:
+                Type: Signature
+                Rule: "OR('OrdererMSP.member')"
+            Admins:
+                Type: Signature
+                Rule: "OR('OrdererMSP.admin')"
+
+    # Regulator Organization
+    - &RegulatorMSP
+        Name: RegulatorMSP
+        ID: RegulatorMSP
+        MSPDir: ../crypto-config/peerOrganizations/regulator.medical-network.com/msp
+        Policies:
+            Readers:
+                Type: Signature
+                Rule: "OR('RegulatorMSP.admin', 'RegulatorMSP.peer', 'RegulatorMSP.client')"
+            Writers:
+                Type: Signature
+                Rule: "OR('RegulatorMSP.admin', 'RegulatorMSP.client')"
+            Admins:
+                Type: Signature
+                Rule: "OR('RegulatorMSP.admin')"
+            Endorsement:
+                Type: Signature
+                Rule: "OR('RegulatorMSP.peer')"
+
+    # Hospital 1 Organization
+    - &HospitalMSP1
+        Name: HospitalMSP1
+        ID: HospitalMSP1
+        MSPDir: ../crypto-config/peerOrganizations/hospital1.medical-network.com/msp
+        Policies:
+            Readers:
+                Type: Signature
+                Rule: "OR('HospitalMSP1.admin', 'HospitalMSP1.peer', 'HospitalMSP1.client')"
+            Writers:
+                Type: Signature
+                Rule: "OR('HospitalMSP1.admin', 'HospitalMSP1.client')"
+            Admins:
+                Type: Signature
+                Rule: "OR('HospitalMSP1.admin')"
+            Endorsement:
+                Type: Signature
+                Rule: "OR('HospitalMSP1.peer')"
+
+    # Hospital 2 Organization
+    - &HospitalMSP2
+        Name: HospitalMSP2
+        ID: HospitalMSP2
+        MSPDir: ../crypto-config/peerOrganizations/hospital2.medical-network.com/msp
+        Policies:
+            Readers:
+                Type: Signature
+                Rule: "OR('HospitalMSP2.admin', 'HospitalMSP2.peer', 'HospitalMSP2.client')"
+            Writers:
+                Type: Signature
+                Rule: "OR('HospitalMSP2.admin', 'HospitalMSP2.client')"
+            Admins:
+                Type: Signature
+                Rule: "OR('HospitalMSP2.admin')"
+            Endorsement:
+                Type: Signature
+                Rule: "OR('HospitalMSP2.peer')"
+
+    # Research Organization
+    - &ResearchOrgMSP
+        Name: ResearchOrgMSP
+        ID: ResearchOrgMSP
+        MSPDir: ../crypto-config/peerOrganizations/research.medical-network.com/msp
+        Policies:
+            Readers:
+                Type: Signature
+                Rule: "OR('ResearchOrgMSP.admin', 'ResearchOrgMSP.peer', 'ResearchOrgMSP.client')"
+            Writers:
+                Type: Signature
+                Rule: "OR('ResearchOrgMSP.admin', 'ResearchOrgMSP.client')"
+            Admins:
+                Type: Signature
+                Rule: "OR('ResearchOrgMSP.admin')"
+            Endorsement:
+                Type: Signature
+                Rule: "OR('ResearchOrgMSP.peer')"
+
+################################################################################
+#
+#   SECTION: Capabilities
+#
+################################################################################
+Capabilities:
+    Channel: &ChannelCapabilities
+        V2_0: true
+
+    Orderer: &OrdererCapabilities
+        V2_0: true
+
+    Application: &ApplicationCapabilities
+        V2_0: true
+
+################################################################################
+#
+#   SECTION: Application
+#
+################################################################################
+Application: &ApplicationDefaults
+
+    Organizations:
+
+    Policies:
+        Readers:
+            Type: ImplicitMeta
+            Rule: "ANY Readers"
+        Writers:
+            Type: ImplicitMeta
+            Rule: "ANY Writers"
+        Admins:
+            Type: ImplicitMeta
+            Rule: "MAJORITY Admins"
+        LifecycleEndorsement:
+            Type: ImplicitMeta
+            Rule: "MAJORITY Endorsement"
+        Endorsement:
+            Type: ImplicitMeta
+            Rule: "MAJORITY Endorsement"
+
+    Capabilities:
+        <<: *ApplicationCapabilities
+
+################################################################################
+#
+#   SECTION: Orderer
+#
+################################################################################
+Orderer: &OrdererDefaults
+
+    OrdererType: etcdraft
+
+    EtcdRaft:
+        Consenters:
+            - Host: orderer0.medical-network.com
+              Port: 7050
+              ClientTLSCert: ../crypto-config/ordererOrganizations/medical-network.com/orderers/orderer0.medical-network.com/tls/server.crt
+              ServerTLSCert: ../crypto-config/ordererOrganizations/medical-network.com/orderers/orderer0.medical-network.com/tls/server.crt
+            - Host: orderer1.medical-network.com
+              Port: 7050
+              ClientTLSCert: ../crypto-config/ordererOrganizations/medical-network.com/orderers/orderer1.medical-network.com/tls/server.crt
+              ServerTLSCert: ../crypto-config/ordererOrganizations/medical-network.com/orderers/orderer1.medical-network.com/tls/server.crt
+            - Host: orderer2.medical-network.com
+              Port: 7050
+              ClientTLSCert: ../crypto-config/ordererOrganizations/medical-network.com/orderers/orderer2.medical-network.com/tls/server.crt
+              ServerTLSCert: ../crypto-config/ordererOrganizations/medical-network.com/orderers/orderer2.medical-network.com/tls/server.crt
+
+    BatchTimeout: 2s
+    BatchSize:
+        MaxMessageCount: 10
+        AbsoluteMaxBytes: 99 MB
+        PreferredMaxBytes: 512 KB
+
+    Organizations:
+
+    Policies:
+        Readers:
+            Type: ImplicitMeta
+            Rule: "ANY Readers"
+        Writers:
+            Type: ImplicitMeta
+            Rule: "ANY Writers"
+        Admins:
+            Type: ImplicitMeta
+            Rule: "MAJORITY Admins"
+        BlockValidation:
+            Type: ImplicitMeta
+            Rule: "ANY Writers"
+
+    Capabilities:
+        <<: *OrdererCapabilities
+
+################################################################################
+#
+#   SECTION: Channel
+#
+################################################################################
+Channel: &ChannelDefaults
+    Policies:
+        Readers:
+            Type: ImplicitMeta
+            Rule: "ANY Readers"
+        Writers:
+            Type: ImplicitMeta
+            Rule: "ANY Writers"
+        Admins:
+            Type: ImplicitMeta
+            Rule: "MAJORITY Admins"
+
+    Capabilities:
+        <<: *ChannelCapabilities
+
+################################################################################
+#
+#   Profile
+#
+#   - Different configuration profiles may be encoded here to be specified
+#   as parameters to the configtxgen tool
+#
+################################################################################
+Profiles:
+
+    MedicalNetworkGenesis:
+        <<: *ChannelDefaults
+        Orderer:
+            <<: *OrdererDefaults
+            Organizations:
+                - *OrdererOrg
+            Capabilities:
+                <<: *OrdererCapabilities
+        Consortiums:
+            MedicalConsortium:
+                Organizations:
+                    - *RegulatorMSP
+                    - *HospitalMSP1
+                    - *HospitalMSP2
+                    - *ResearchOrgMSP
+
+    MedicalMainChannel:
+        Consortium: MedicalConsortium
+        <<: *ChannelDefaults
+        Application:
+            <<: *ApplicationDefaults
+            Organizations:
+                - *RegulatorMSP
+                - *HospitalMSP1
+                - *HospitalMSP2
+                - *ResearchOrgMSP
+            Capabilities:
+                <<: *ApplicationCapabilities

@@ -1,0 +1,12 @@
+[
+  {
+    "name": "shared_records_collection",
+    "policy": "OR('HospitalMSP1.member', 'HospitalMSP2.member', 'ResearchOrgMSP.member', 'RegulatorMSP.member')",
+    "requiredPeerCount": 0,
+    "maxPeerCount": 3,
+    "blockToLive": 0,
+    "memberOnlyRead": true,
+    "memberOnlyWrite": true
+  }
+]
+

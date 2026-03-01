@@ -1,0 +1,31 @@
+# Hyperledger Fabric Network
+network/crypto-config/
+network/channel-artifacts/
+*.block
+*.tx
+
+# Docker
+docker-compose.override.yaml
+
+# Logs
+*.log
+logs/
+
+# Environment files
+.env.local
+.env.*.local
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Temporary files
+*.tmp
+*.temp
