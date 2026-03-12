@@ -1,0 +1,437 @@
+=====================================================
+ BLOCKCHAIN-BASED MEDICAL DATA SHARING DEMO
+ Hyperledger Fabric + MinIO Hybrid Architecture
+=====================================================
+---------------------------------------
+DEMO RECORD ID: rec_1773334872
+---------------------------------------
+Organizations:
+  Hospital1
+  Hospital2
+  ResearchOrg
+  Regulator
+
+Architecture:
+  Blockchain: Hyperledger Fabric
+  Storage: MinIO Object Storage
+  Smart Contract: MedicalContract
+
+============================================
+SECURITY PROPERTIES DEMONSTRATED
+============================================
+1. Hospitals can upload records
+2. Researchers cannot access records without approval
+3. Patient consent defines access expiry
+4. Regulator can audit entire ledger
+5. Large medical files stored OFF-CHAIN
+6. Blockchain stores only metadata + hash
+7. Hash guarantees file integrity
+
+============================================
+SYSTEM ARCHITECTURE
+============================================
+Hospital
+   |
+   v
+Hyperledger Fabric Blockchain
+   |
+   v
+MinIO Object Storage
+   |
+   v
+Researcher Access
+
+============================================
+NETWORK TOPOLOGY
+============================================
+Hospital1 Peer
+Hospital2 Peer
+Research Peer
+Regulator Peer
+Ordering Service
+NAMES                                                                                                                    STATUS
+minio-medical                                                                                                            Up 25 hours
+dev-peer0.hospital2.medical-network.com-medicalcc_1.0-aefd93818582206a2a53ed61fb5bdcfd96bf7a2eb4fb1953eb2f80c817e20763   Up 26 hours
+dev-peer0.research.medical-network.com-medicalcc_1.0-aefd93818582206a2a53ed61fb5bdcfd96bf7a2eb4fb1953eb2f80c817e20763    Up 26 hours
+dev-peer0.hospital1.medical-network.com-medicalcc_1.0-aefd93818582206a2a53ed61fb5bdcfd96bf7a2eb4fb1953eb2f80c817e20763   Up 26 hours
+dev-peer0.regulator.medical-network.com-medicalcc_1.0-aefd93818582206a2a53ed61fb5bdcfd96bf7a2eb4fb1953eb2f80c817e20763   Up 26 hours
+peer0.hospital1.medical-network.com                                                                                      Up 27 hours
+peer0.regulator.medical-network.com                                                                                      Up 27 hours
+peer0.hospital2.medical-network.com                                                                                      Up 27 hours
+orderer0.medical-network.com                                                                                             Up 27 hours
+peer0.research.medical-network.com                                                                                       Up 27 hours
+
+============================================
+[0;34mSTEP 1 — Verify Channel[0m
+============================================
+[34m2026-03-12 17:01:16.497 UTC 0001 INFO[0m [channelCmd] [34;1mInitCmdFactory[0m -> Endorser and orderer connections initialized
+Channels peers has joined: 
+medical-main-channel
+
+============================================
+BLOCKCHAIN LEDGER INFO
+============================================
+[34m2026-03-12 17:01:17.694 UTC 0001 INFO[0m [channelCmd] [34;1mInitCmdFactory[0m -> Endorser and orderer connections initialized
+Blockchain info: {"height":48,"currentBlockHash":"P5fAn5kBWh33/GM3Z9aFPtdhl6xpZEygXpbeAcnuy5s=","previousBlockHash":"lnwYJtyNmYgTjSqlRqm/lD9bW+aXQ0ClrVfL33iPkik="}
+block height: 48
+current block hash: P5fAn5kBWh33/GM3Z9aFPtdhl6xpZEygXpbeAcnuy5s=
+previous block hash: lnwYJtyNmYgTjSqlRqm/lD9bW+aXQ0ClrVfL33iPkik=
+This proves immutable blockchain ledger.
+
+============================================
+ENDORSEMENT POLICY
+============================================
+Committed chaincode definitions on channel 'medical-main-channel':
+Name: medicalcc, Version: 1.0, Sequence: 1, Endorsement Plugin: escc, Validation Plugin: vscc
+Transactions require endorsement from multiple organizations.
+
+============================================
+STEP 4 — Upload file to MinIO (OFF-CHAIN)
+============================================
+
+Computed file SHA256 hash:
+5b1fa81f4d8fa47f733bc01e06423d5c6d2e16d4f1c0370c219d2fde433e4879
+
+============================================
+STEP 5 — Hospital uploads metadata ON-CHAIN
+============================================
+[34m2026-03-12 17:01:23.599 UTC 0001 INFO[0m [chaincodeCmd] [34;1mClientWait[0m -> txid [d577ed81740dc452b8ebac2860963173dc45ef0b535b7c2db58bce45817040e6] committed with status (VALID) at peer0.research.medical-network.com:7051
+[34m2026-03-12 17:01:23.599 UTC 0002 INFO[0m [chaincodeCmd] [34;1mClientWait[0m -> txid [d577ed81740dc452b8ebac2860963173dc45ef0b535b7c2db58bce45817040e6] committed with status (VALID) at peer0.hospital2.medical-network.com:7051
+[34m2026-03-12 17:01:23.599 UTC 0003 INFO[0m [chaincodeCmd] [34;1mClientWait[0m -> txid [d577ed81740dc452b8ebac2860963173dc45ef0b535b7c2db58bce45817040e6] committed with status (VALID) at peer0.hospital1.medical-network.com:7051
+[34m2026-03-12 17:01:23.599 UTC 0004 INFO[0m [chaincodeCmd] [34;1mchaincodeInvokeOrQuery[0m -> Chaincode invoke successful. result: status:200 payload:"{\"recordID\":\"rec_1773334872\",\"patientID\":\"patient1\",\"hospitalID\":\"hospital1\",\"fileHash\":\"5b1fa81f4d8fa47f733bc01e06423d5c6d2e16d4f1c0370c219d2fde433e4879\",\"minioPath\":\"medical-records/reports/rec_1773334872.txt\",\"timestamp\":1773334881}" 
+Transaction latency: 2s
+[0;32mTransaction committed with ID: d577ed81740dc452b8ebac2860963173dc45ef0b535b7c2db58bce45817040e6[0m
+Transaction permanently recorded on blockchain.
+[0;32mTransaction committed successfully[0m
+
+============================================
+BLOCK INSPECTION
+============================================
+[34m2026-03-12 17:01:23.736 UTC 0001 INFO[0m [channelCmd] [34;1mInitCmdFactory[0m -> Endorser and orderer connections initialized
+[34m2026-03-12 17:01:23.739 UTC 0002 INFO[0m [cli.common] [34;1mreadBlock[0m -> Received block: 48
+Latest block fetched from blockchain ledger.
+This block contains the transaction that recorded the medical metadata.
+
+Checking ledger height after transaction...
+[34m2026-03-12 17:01:23.830 UTC 0001 INFO[0m [channelCmd] [34;1mInitCmdFactory[0m -> Endorser and orderer connections initialized
+Blockchain info: {"height":49,"currentBlockHash":"Nrhcws4KEw2CxRyK6Mt6me5w9jy/zprhQyjuLroFiwo=","previousBlockHash":"P5fAn5kBWh33/GM3Z9aFPtdhl6xpZEygXpbeAcnuy5s="}
+block height: 49
+current block hash: Nrhcws4KEw2CxRyK6Mt6me5w9jy/zprhQyjuLroFiwo=
+previous block hash: P5fAn5kBWh33/GM3Z9aFPtdhl6xpZEygXpbeAcnuy5s=
+Ledger height increased.
+Ledger height increased, proving the transaction was appended to the blockchain.
+
+============================================
+STEP 6 — Verify record stored ON-CHAIN
+============================================
+{"recordID":"rec_1773334872","patientID":"patient1","hospitalID":"hospital1","fileHash":"5b1fa81f4d8fa47f733bc01e06423d5c6d2e16d4f1c0370c219d2fde433e4879","minioPath":"medical-records/reports/rec_1773334872.txt","timestamp":1773334881}
+
+============================================
+[1;33mSECURITY TEST — Unauthorized Access Attempt[0m
+============================================
+Error: endorsement failure during query. response: status:500 message:"No consent found for rec_1773334872 and x509::/C=US/ST=California/L=San Francisco/OU=admin/CN=Admin@research.medical-network.com::/C=US/ST=California/L=San Francisco/O=research.medical-network.com/CN=ca.research.medical-network.com" 
+Expected result: Access denied because patient consent not granted.
+[0;31mAccess denied as expected[0m
+Unauthorized request was rejected by chaincode access policy.
+
+============================================
+STEP 7 — Researcher requests access
+============================================
+[34m2026-03-12 17:01:29.412 UTC 0001 INFO[0m [chaincodeCmd] [34;1mClientWait[0m -> txid [9108d174772b886dd0fddb1e3a6c372ee87a5292b44e9f3a7d017a770fb5820a] committed with status (VALID) at peer0.research.medical-network.com:7051
+[34m2026-03-12 17:01:29.412 UTC 0002 INFO[0m [chaincodeCmd] [34;1mClientWait[0m -> txid [9108d174772b886dd0fddb1e3a6c372ee87a5292b44e9f3a7d017a770fb5820a] committed with status (VALID) at peer0.hospital1.medical-network.com:7051
+[34m2026-03-12 17:01:29.412 UTC 0003 INFO[0m [chaincodeCmd] [34;1mClientWait[0m -> txid [9108d174772b886dd0fddb1e3a6c372ee87a5292b44e9f3a7d017a770fb5820a] committed with status (VALID) at peer0.hospital2.medical-network.com:7051
+[34m2026-03-12 17:01:29.412 UTC 0004 INFO[0m [chaincodeCmd] [34;1mchaincodeInvokeOrQuery[0m -> Chaincode invoke successful. result: status:200 payload:"{\"recordID\":\"rec_1773334872\",\"researcherID\":\"x509::/C=US/ST=California/L=San Francisco/OU=admin/CN=Admin@research.medical-network.com::/C=US/ST=California/L=San Francisco/O=research.medical-network.com/CN=ca.research.medical-network.com\",\"patientID\":\"patient1\",\"status\":\"PENDING\",\"requestedAt\":1773334887}" 
+Transaction latency: 2s
+[0;32mTransaction committed with ID: 9108d174772b886dd0fddb1e3a6c372ee87a5292b44e9f3a7d017a770fb5820a[0m
+Transaction permanently recorded on blockchain.
+[0;32mTransaction committed successfully[0m
+
+============================================
+BLOCK INSPECTION
+============================================
+[34m2026-03-12 17:01:29.533 UTC 0001 INFO[0m [channelCmd] [34;1mInitCmdFactory[0m -> Endorser and orderer connections initialized
+[34m2026-03-12 17:01:29.534 UTC 0002 INFO[0m [cli.common] [34;1mreadBlock[0m -> Received block: 49
+Latest block fetched from blockchain ledger.
+This block contains the transaction that recorded the medical metadata.
+
+Checking ledger height after transaction...
+[34m2026-03-12 17:01:29.633 UTC 0001 INFO[0m [channelCmd] [34;1mInitCmdFactory[0m -> Endorser and orderer connections initialized
+Blockchain info: {"height":50,"currentBlockHash":"fuiNxrd5FSxUSOTpwlnqP6fuhdIz7anR6roo8+cBHw4=","previousBlockHash":"Nrhcws4KEw2CxRyK6Mt6me5w9jy/zprhQyjuLroFiwo="}
+block height: 50
+current block hash: fuiNxrd5FSxUSOTpwlnqP6fuhdIz7anR6roo8+cBHw4=
+previous block hash: Nrhcws4KEw2CxRyK6Mt6me5w9jy/zprhQyjuLroFiwo=
+Ledger height increased.
+Ledger height increased, proving the transaction was appended to the blockchain.
+
+============================================
+STEP 8 — Hospital approves access
+============================================
+
+Consent expiry set to:
+1773334920
+[34m2026-03-12 17:01:32.844 UTC 0001 INFO[0m [chaincodeCmd] [34;1mClientWait[0m -> txid [193246b2df88808098fa610f8d97ae3f07529efa096f4e806324cd26538e1a4e] committed with status (VALID) at peer0.research.medical-network.com:7051
+[34m2026-03-12 17:01:32.845 UTC 0002 INFO[0m [chaincodeCmd] [34;1mClientWait[0m -> txid [193246b2df88808098fa610f8d97ae3f07529efa096f4e806324cd26538e1a4e] committed with status (VALID) at peer0.hospital1.medical-network.com:7051
+[34m2026-03-12 17:01:32.846 UTC 0003 INFO[0m [chaincodeCmd] [34;1mClientWait[0m -> txid [193246b2df88808098fa610f8d97ae3f07529efa096f4e806324cd26538e1a4e] committed with status (VALID) at peer0.hospital2.medical-network.com:7051
+[34m2026-03-12 17:01:32.846 UTC 0004 INFO[0m [chaincodeCmd] [34;1mchaincodeInvokeOrQuery[0m -> Chaincode invoke successful. result: status:200 payload:"{\"recordID\":\"rec_1773334872\",\"researcherID\":\"x509::/C=US/ST=California/L=San Francisco/OU=admin/CN=Admin@research.medical-network.com::/C=US/ST=California/L=San Francisco/O=research.medical-network.com/CN=ca.research.medical-network.com\",\"patientID\":\"patient1\",\"expiry\":1773334920,\"status\":\"ACTIVE\",\"grantedAt\":1773334890}" 
+Transaction latency: 2s
+[0;32mTransaction committed with ID: 193246b2df88808098fa610f8d97ae3f07529efa096f4e806324cd26538e1a4e[0m
+Transaction permanently recorded on blockchain.
+[0;32mTransaction committed successfully[0m
+
+============================================
+BLOCK INSPECTION
+============================================
+[34m2026-03-12 17:01:33.002 UTC 0001 INFO[0m [channelCmd] [34;1mInitCmdFactory[0m -> Endorser and orderer connections initialized
+[34m2026-03-12 17:01:33.004 UTC 0002 INFO[0m [cli.common] [34;1mreadBlock[0m -> Received block: 50
+Latest block fetched from blockchain ledger.
+This block contains the transaction that recorded the medical metadata.
+
+Checking ledger height after transaction...
+[34m2026-03-12 17:01:33.099 UTC 0001 INFO[0m [channelCmd] [34;1mInitCmdFactory[0m -> Endorser and orderer connections initialized
+Blockchain info: {"height":51,"currentBlockHash":"Uq1lS047tg/1gUjZTRD4V3+4JdaSNwYbpZssH/UQq2I=","previousBlockHash":"fuiNxrd5FSxUSOTpwlnqP6fuhdIz7anR6roo8+cBHw4="}
+block height: 51
+current block hash: Uq1lS047tg/1gUjZTRD4V3+4JdaSNwYbpZssH/UQq2I=
+previous block hash: fuiNxrd5FSxUSOTpwlnqP6fuhdIz7anR6roo8+cBHw4=
+Ledger height increased.
+Ledger height increased, proving the transaction was appended to the blockchain.
+
+Current time:
+1773334893
+Access allowed only if current_time < expiry
+
+============================================
+STEP 9 — Regulator audit (ON-CHAIN)
+============================================
+{"records":[{"recordID":"demoRec","patientID":"patient1","hospitalID":"hospital1","fileHash":"hashABC","minioPath":"minio/reports/demoRec.pdf","timestamp":1773256956},{"recordID":"rec1","patientID":"patient1","hospitalID":"hospital1","fileHash":"hash1","minioPath":"minio/reports/rec1.pdf","timestamp":1773243073},{"recordID":"rec2","patientID":"patient1","hospitalID":"hospital1","fileHash":"hash123","minioPath":"minio/reports/rec2.pdf","timestamp":1773245634},{"recordID":"rec_1773257177","patientID":"patient1","hospitalID":"hospital1","fileHash":"hashABC","minioPath":"minio/reports/rec_1773257177.pdf","timestamp":1773257184},{"recordID":"rec_1773257285","patientID":"patient1","hospitalID":"hospital1","fileHash":"hashABC","minioPath":"minio/reports/rec_1773257285.pdf","timestamp":1773257293},{"recordID":"rec_1773257549","patientID":"patient1","hospitalID":"hospital1","fileHash":"bcaef4b6f67cb30e9196afc3ef5100973bc6bc0ed65366afbf661a9251bfaed3","minioPath":"medical-records/reports/rec_1773257549.txt","timestamp":1773257560},{"recordID":"rec_1773257938","patientID":"patient1","hospitalID":"hospital1","fileHash":"8d1c7f145e9b0bdc4f6034ec653eda7ad650beb0925b8efa00525797fe8378d1","minioPath":"medical-records/reports/rec_1773257938.txt","timestamp":1773257950},{"recordID":"rec_1773258537","patientID":"patient1","hospitalID":"hospital1","fileHash":"9e3c33ae5f5d5a16e98950ca1ff09222dabf4a261e977f14012782a1feed7fc5","minioPath":"medical-records/reports/rec_1773258537.txt","timestamp":1773258553},{"recordID":"rec_1773258836","patientID":"patient1","hospitalID":"hospital1","fileHash":"9a6faec0813377bec0658313b67af2c217f6398f5b943a67f15263df895a19b1","minioPath":"medical-records/reports/rec_1773258836.txt","timestamp":1773258846},{"recordID":"rec_1773320819","patientID":"patient1","hospitalID":"hospital1","fileHash":"0698494b1ce7990af59835686b0da941f35410a2f2113da6f923540bfa741b9c","minioPath":"medical-records/reports/rec_1773320819.txt","timestamp":1773320829},{"recordID":"rec_1773334633","patientID":"patient1","hospitalID":"hospital1","fileHash":"7dbc0810e35d5c2236f356af42b7cffb4c279e8d21ea5e9d30e321cb6a462b87","minioPath":"medical-records/reports/rec_1773334633.txt","timestamp":1773334642},{"recordID":"rec_1773334872","patientID":"patient1","hospitalID":"hospital1","fileHash":"5b1fa81f4d8fa47f733bc01e06423d5c6d2e16d4f1c0370c219d2fde433e4879","minioPath":"medical-records/reports/rec_1773334872.txt","timestamp":1773334881}],"requests":[{"recordID":"rec1","researcherID":"x509::/C=US/ST=California/L=San Francisco/OU=admin/CN=Admin@research.medical-network.com::/C=US/ST=California/L=San Francisco/O=research.medical-network.com/CN=ca.research.medical-network.com","patientID":"patient1","status":"APPROVED","requestedAt":1773243453,"reviewedAt":1773243598},{"recordID":"rec2","researcherID":"x509::/C=US/ST=California/L=San Francisco/OU=admin/CN=Admin@research.medical-network.com::/C=US/ST=California/L=San Francisco/O=research.medical-network.com/CN=ca.research.medical-network.com","patientID":"patient1","status":"APPROVED","requestedAt":1773255916,"reviewedAt":1773255976},{"recordID":"rec_1773257177","researcherID":"x509::/C=US/ST=California/L=San Francisco/OU=admin/CN=Admin@research.medical-network.com::/C=US/ST=California/L=San Francisco/O=research.medical-network.com/CN=ca.research.medical-network.com","patientID":"patient1","status":"APPROVED","requestedAt":1773257191,"reviewedAt":1773257196},{"recordID":"rec_1773257285","researcherID":"x509::/C=US/ST=California/L=San Francisco/OU=admin/CN=Admin@research.medical-network.com::/C=US/ST=California/L=San Francisco/O=research.medical-network.com/CN=ca.research.medical-network.com","patientID":"patient1","status":"APPROVED","requestedAt":1773257300,"reviewedAt":1773257304},{"recordID":"rec_1773257549","researcherID":"x509::/C=US/ST=California/L=San Francisco/OU=admin/CN=Admin@research.medical-network.com::/C=US/ST=California/L=San Francisco/O=research.medical-network.com/CN=ca.research.medical-network.com","patientID":"patient1","status":"APPROVED","requestedAt":1773257567,"reviewedAt":1773257571},{"recordID":"rec_1773257938","researcherID":"x509::/C=US/ST=California/L=San Francisco/OU=admin/CN=Admin@research.medical-network.com::/C=US/ST=California/L=San Francisco/O=research.medical-network.com/CN=ca.research.medical-network.com","patientID":"patient1","status":"APPROVED","requestedAt":1773257960,"reviewedAt":1773257965},{"recordID":"rec_1773258537","researcherID":"x509::/C=US/ST=California/L=San Francisco/OU=admin/CN=Admin@research.medical-network.com::/C=US/ST=California/L=San Francisco/O=research.medical-network.com/CN=ca.research.medical-network.com","patientID":"patient1","status":"APPROVED","requestedAt":1773258562,"reviewedAt":1773258567},{"recordID":"rec_1773258836","researcherID":"x509::/C=US/ST=California/L=San Francisco/OU=admin/CN=Admin@research.medical-network.com::/C=US/ST=California/L=San Francisco/O=research.medical-network.com/CN=ca.research.medical-network.com","patientID":"patient1","status":"APPROVED","requestedAt":1773258852,"reviewedAt":1773258856},{"recordID":"rec_1773320819","researcherID":"x509::/C=US/ST=California/L=San Francisco/OU=admin/CN=Admin@research.medical-network.com::/C=US/ST=California/L=San Francisco/O=research.medical-network.com/CN=ca.research.medical-network.com","patientID":"patient1","status":"APPROVED","requestedAt":1773320835,"reviewedAt":1773320839},{"recordID":"rec_1773334633","researcherID":"x509::/C=US/ST=California/L=San Francisco/OU=admin/CN=Admin@research.medical-network.com::/C=US/ST=California/L=San Francisco/O=research.medical-network.com/CN=ca.research.medical-network.com","patientID":"patient1","status":"APPROVED","requestedAt":1773334649,"reviewedAt":1773334652},{"recordID":"rec_1773334872","researcherID":"x509::/C=US/ST=California/L=San Francisco/OU=admin/CN=Admin@research.medical-network.com::/C=US/ST=California/L=San Francisco/O=research.medical-network.com/CN=ca.research.medical-network.com","patientID":"patient1","status":"APPROVED","requestedAt":1773334887,"reviewedAt":1773334890}],"consents":[{"recordID":"rec1","researcherID":"x509::/C=US/ST=California/L=San Francisco/OU=admin/CN=Admin@research.medical-network.com::/C=US/ST=California/L=San Francisco/O=research.medical-network.com/CN=ca.research.medical-network.com","patientID":"patient1","expiry":1800000000,"status":"ACTIVE","grantedAt":1773243598},{"recordID":"rec2","researcherID":"x509::/C=US/ST=California/L=San Francisco/OU=admin/CN=Admin@research.medical-network.com::/C=US/ST=California/L=San Francisco/O=research.medical-network.com/CN=ca.research.medical-network.com","patientID":"patient1","expiry":1800000000,"status":"ACTIVE","grantedAt":1773255976},{"recordID":"rec_1773257177","researcherID":"x509::/C=US/ST=California/L=San Francisco/OU=admin/CN=Admin@research.medical-network.com::/C=US/ST=California/L=San Francisco/O=research.medical-network.com/CN=ca.research.medical-network.com","patientID":"patient1","expiry":1800000000,"status":"ACTIVE","grantedAt":1773257196},{"recordID":"rec_1773257285","researcherID":"x509::/C=US/ST=California/L=San Francisco/OU=admin/CN=Admin@research.medical-network.com::/C=US/ST=California/L=San Francisco/O=research.medical-network.com/CN=ca.research.medical-network.com","patientID":"patient1","expiry":1800000000,"status":"ACTIVE","grantedAt":1773257304},{"recordID":"rec_1773257549","researcherID":"x509::/C=US/ST=California/L=San Francisco/OU=admin/CN=Admin@research.medical-network.com::/C=US/ST=California/L=San Francisco/O=research.medical-network.com/CN=ca.research.medical-network.com","patientID":"patient1","expiry":1800000000,"status":"ACTIVE","grantedAt":1773257571},{"recordID":"rec_1773257938","researcherID":"x509::/C=US/ST=California/L=San Francisco/OU=admin/CN=Admin@research.medical-network.com::/C=US/ST=California/L=San Francisco/O=research.medical-network.com/CN=ca.research.medical-network.com","patientID":"patient1","expiry":1773257995,"status":"ACTIVE","grantedAt":1773257965},{"recordID":"rec_1773258537","researcherID":"x509::/C=US/ST=California/L=San Francisco/OU=admin/CN=Admin@research.medical-network.com::/C=US/ST=California/L=San Francisco/O=research.medical-network.com/CN=ca.research.medical-network.com","patientID":"patient1","expiry":1773258596,"status":"ACTIVE","grantedAt":1773258567},{"recordID":"rec_1773258836","researcherID":"x509::/C=US/ST=California/L=San Francisco/OU=admin/CN=Admin@research.medical-network.com::/C=US/ST=California/L=San Francisco/O=research.medical-network.com/CN=ca.research.medical-network.com","patientID":"patient1","expiry":1773258885,"status":"ACTIVE","grantedAt":1773258856},{"recordID":"rec_1773320819","researcherID":"x509::/C=US/ST=California/L=San Francisco/OU=admin/CN=Admin@research.medical-network.com::/C=US/ST=California/L=San Francisco/O=research.medical-network.com/CN=ca.research.medical-network.com","patientID":"patient1","expiry":1773320868,"status":"ACTIVE","grantedAt":1773320839},{"recordID":"rec_1773334633","researcherID":"x509::/C=US/ST=California/L=San Francisco/OU=admin/CN=Admin@research.medical-network.com::/C=US/ST=California/L=San Francisco/O=research.medical-network.com/CN=ca.research.medical-network.com","patientID":"patient1","expiry":1773334682,"status":"ACTIVE","grantedAt":1773334652},{"recordID":"rec_1773334872","researcherID":"x509::/C=US/ST=California/L=San Francisco/OU=admin/CN=Admin@research.medical-network.com::/C=US/ST=California/L=San Francisco/O=research.medical-network.com/CN=ca.research.medical-network.com","patientID":"patient1","expiry":1773334920,"status":"ACTIVE","grantedAt":1773334890}]}
+
+============================================
+STEP 10 — Researcher retrieves record
+============================================
+{"recordID":"rec_1773334872","patientID":"patient1","hospitalID":"hospital1","fileHash":"5b1fa81f4d8fa47f733bc01e06423d5c6d2e16d4f1c0370c219d2fde433e4879","minioPath":"medical-records/reports/rec_1773334872.txt","timestamp":1773334881}
+
+============================================
+STEP — Waiting for consent expiry
+============================================
+Error: endorsement failure during query. response: status:500 message:"Consent is not active or has expired" 
+Access denied because patient consent expired.
+[0;31mAccess denied as expected[0m
+Expired consent was enforced correctly.
+
+============================================
+STEP 11 — Verify OFF-CHAIN storage (MinIO)
+============================================
+/data/medical-records:
+records
+reports
+
+/data/medical-records/records:
+12345
+54321
+patientA
+
+/data/medical-records/records/12345:
+rec_1773321846758.pdf
+
+/data/medical-records/records/12345/rec_1773321846758.pdf:
+75d04b04-3014-4057-83d0-dabafc0dc9eb
+xl.meta
+
+/data/medical-records/records/12345/rec_1773321846758.pdf/75d04b04-3014-4057-83d0-dabafc0dc9eb:
+part.1
+
+/data/medical-records/records/54321:
+rec_1773321988167.pdf
+
+/data/medical-records/records/54321/rec_1773321988167.pdf:
+4eaccaa3-21a6-4fdb-9171-249cc568a022
+xl.meta
+
+/data/medical-records/records/54321/rec_1773321988167.pdf/4eaccaa3-21a6-4fdb-9171-249cc568a022:
+part.1
+
+/data/medical-records/records/patientA:
+REC_1773147334365.txt
+
+/data/medical-records/records/patientA/REC_1773147334365.txt:
+xl.meta
+
+/data/medical-records/reports:
+rec_1773257549.txt
+rec_1773257938.txt
+rec_1773258537.txt
+rec_1773258836.txt
+rec_1773320819.txt
+rec_1773326271300.pdf
+rec_1773334034835.pdf
+rec_1773334243887.pdf
+rec_1773334520303.pdf
+rec_1773334633.txt
+rec_1773334872.txt
+
+/data/medical-records/reports/rec_1773326271300.pdf:
+0ab006fd-25e1-483f-8c29-67fa67de94da
+xl.meta
+
+/data/medical-records/reports/rec_1773326271300.pdf/0ab006fd-25e1-483f-8c29-67fa67de94da:
+part.1
+
+/data/medical-records/reports/rec_1773334034835.pdf:
+26025e13-ae4c-4d1c-82e9-17ef3ac88812
+xl.meta
+
+/data/medical-records/reports/rec_1773334034835.pdf/26025e13-ae4c-4d1c-82e9-17ef3ac88812:
+part.1
+
+/data/medical-records/reports/rec_1773334243887.pdf:
+d114e9d1-a2e9-4913-924e-177effa1a143
+xl.meta
+
+/data/medical-records/reports/rec_1773334243887.pdf/d114e9d1-a2e9-4913-924e-177effa1a143:
+part.1
+
+/data/medical-records/reports/rec_1773334520303.pdf:
+5ce85be6-6ac4-40f9-8f11-67ac9a638a7e
+xl.meta
+
+/data/medical-records/reports/rec_1773334520303.pdf/5ce85be6-6ac4-40f9-8f11-67ac9a638a7e:
+part.1
+
+Stored file contents:
+Patient medical report for demo record rec_1773334872
+
+============================================
+VERIFY FILE INTEGRITY
+============================================
+Blockchain hash:
+5b1fa81f4d8fa47f733bc01e06423d5c6d2e16d4f1c0370c219d2fde433e4879
+
+Actual file hash:
+5b1fa81f4d8fa47f733bc01e06423d5c6d2e16d4f1c0370c219d2fde433e4879
+[0;32mIntegrity verified — file not tampered.[0m
+
+============================================
+SECURITY TEST — File Tampering Attack
+============================================
+Blockchain hash: 5b1fa81f4d8fa47f733bc01e06423d5c6d2e16d4f1c0370c219d2fde433e4879
+Tampered file hash: 469567b310a380267e6f35029fe89097d6a50ce9a2bf94d99eebdae41f03dd4f
+[0;31mTampering detected via SHA256 mismatch.[0m
+Blockchain integrity verification prevents data tampering.
+
+============================================
+BLOCKCHAIN IMMUTABILITY TEST
+============================================
+Error: endorsement failure during invoke. response: status:500 message:"Record rec_1773334872 already exists" 
+[0;32mBlockchain prevents modification of historical records.[0m
+
+FULL CONSENT LIFECYCLE:
+UPLOAD -> REQUEST -> APPROVE -> ACCESS -> EXPIRE
+
+============================================
+CHAINCODE EVENTS
+============================================
+Events emitted:
+  RecordUploaded
+  AccessRequested
+  ConsentGranted
+Backend event listeners consume these events for async processing,
+notifications, analytics, and regulator-facing dashboards.
+
+============================================
+ON-CHAIN VS OFF-CHAIN STORAGE
+============================================
+ON-CHAIN
+recordID
+patientID
+fileHash
+minioPath
+timestamp
+consent logs
+
+OFF-CHAIN
+medical files
+reports
+large datasets
+Hybrid architecture keeps blockchain lightweight while preserving integrity.
+
+============================================
+PERMISSION MODEL
+============================================
+Hospital role:
+  upload records
+  approve researcher access
+
+Researcher role:
+  request access
+  retrieve records if consent active
+
+Regulator role:
+  audit full blockchain state
+
+Patient role:
+  consent expiry controls access duration
+
+============================================
+SECURITY GUARANTEES
+============================================
+✔ Permissioned blockchain network
+✔ Multi-organization endorsement
+✔ Role-based access control
+✔ Patient-controlled consent
+✔ Time-limited access
+✔ Unauthorized access rejection
+✔ Immutable audit logs
+✔ File integrity verification
+
+============================================
+BLOCKCHAIN MEDICAL DATA SHARING SYSTEM
+============================================
+Components:
+  Hyperledger Fabric
+  Smart Contracts
+  Role-Based Access Control
+  Consent Management
+  MinIO Storage
+  SHA256 Integrity
+
+System guarantees:
+  Decentralization
+  Transparency
+  Data Integrity
+  Secure Data Sharing
+  Regulatory Auditability
+
+============================================
+DEMO EXECUTION TIMELINE
+============================================
+Record Upload -> Blockchain Metadata Stored
+Researcher Request -> Pending Consent
+Hospital Approval -> Consent Granted
+Researcher Retrieval -> Access Allowed
+Consent Expiry -> Access Revoked
+
+============================================
+SYSTEM METRICS
+============================================
+Running containers:
+      11
+Blockchain ledger height:
+[34m2026-03-12 17:02:24.837 UTC 0001 INFO[0m [channelCmd] [34;1mInitCmdFactory[0m -> Endorser and orderer connections initialized
+Blockchain info: {"height":51,"currentBlockHash":"Uq1lS047tg/1gUjZTRD4V3+4JdaSNwYbpZssH/UQq2I=","previousBlockHash":"fuiNxrd5FSxUSOTpwlnqP6fuhdIz7anR6roo8+cBHw4="}
+Stored medical files in MinIO:
+      11
+
+============================================
+ DEMO COMPLETED SUCCESSFULLY
+============================================
+
+============================================
+ DEMO SUMMARY
+============================================
+✔ Permissioned blockchain network
+✔ Multi-organization endorsement
+✔ Patient consent controlled access
+✔ Time-limited access control
+✔ Unauthorized access prevented
+✔ Hash-based file integrity
+✔ Hybrid on-chain/off-chain architecture
+✔ Regulator audit capability
