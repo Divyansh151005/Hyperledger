@@ -1,0 +1,24 @@
+#!/bin/bash
+set -e
+
+CHAINCODE_SOURCE_DIR="$1"
+CHAINCODE_METADATA_DIR="$2"
+BUILD_OUTPUT_DIR="$3"
+
+mkdir -p "$BUILD_OUTPUT_DIR"
+
+# Handle lifecycle package: SOURCE_DIR may contain code.tar.gz or extracted chaincode
+if [ -f "$CHAINCODE_SOURCE_DIR/code.tar.gz" ]; then
+    tar -xzf "$CHAINCODE_SOURCE_DIR/code.tar.gz" -C "$BUILD_OUTPUT_DIR"
+elif [ -d "$CHAINCODE_SOURCE_DIR/src" ]; then
+    cp -r "$CHAINCODE_SOURCE_DIR/src"/* "$BUILD_OUTPUT_DIR/"
+elif [ -f "$CHAINCODE_SOURCE_DIR/package.json" ]; then
+    cp -r "$CHAINCODE_SOURCE_DIR"/* "$BUILD_OUTPUT_DIR/"
+else
+    cp -r "$CHAINCODE_SOURCE_DIR"/* "$BUILD_OUTPUT_DIR/" 2>/dev/null || true
+fi
+
+# Run npm install if node/npm available (no Docker)
+if command -v npm >/dev/null 2>&1; then
+    cd "$BUILD_OUTPUT_DIR" && npm install --production 2>/dev/null || true
+fi

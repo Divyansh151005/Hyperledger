@@ -1,14 +1,6 @@
-version: '3.8'
-
 networks:
   medical-network:
     name: medical-network
-
-volumes:
-  peer0.regulator.medical-network.com:
-  peer0.hospital1.medical-network.com:
-  peer0.hospital2.medical-network.com:
-  peer0.research.medical-network.com:
 
 services:
   # Regulator Peer
@@ -17,9 +9,10 @@ services:
     image: hyperledger/fabric-peer:2.5.3
     platform: linux/amd64
     environment:
-      - CORE_VM_ENDPOINT=unix:///host/var/run/docker.sock
-      - CORE_VM_DOCKER_HOSTCONFIG_NETWORKMODE=medical-network
+      - DOCKER_API_VERSION=1.44
+      - FABRIC_CFG_PATH=/etc/hyperledger/fabric-config
       - FABRIC_LOGGING_SPEC=INFO
+      - CORE_LEDGER_SNAPSHOTS_ROOTDIR=/var/hyperledger/production/snapshots
       - CORE_PEER_TLS_ENABLED=true
       - CORE_PEER_GOSSIP_USELEADERELECTION=true
       - CORE_PEER_GOSSIP_ORGLEADER=false
@@ -32,19 +25,40 @@ services:
       - CORE_PEER_LISTENADDRESS=0.0.0.0:7051
       - CORE_PEER_CHAINCODEADDRESS=peer0.regulator.medical-network.com:7052
       - CORE_PEER_CHAINCODELISTENADDRESS=0.0.0.0:7052
+      - CORE_CHAINCODE_MODE=dev
       - CORE_PEER_GOSSIP_BOOTSTRAP=peer0.regulator.medical-network.com:7051
       - CORE_PEER_GOSSIP_EXTERNALENDPOINT=peer0.regulator.medical-network.com:7051
+      - CORE_PEER_GOSSIP_ENDPOINT=peer0.regulator.medical-network.com:7051
+      - CORE_PEER_ADDRESSAUTODETECT=true
       - CORE_PEER_LOCALMSPID=RegulatorMSP
+      - CORE_PEER_MSPCONFIGPATH=/etc/hyperledger/fabric/msp
+      - CORE_PEER_BCCSP_DEFAULT=SW
+      - CORE_PEER_BCCSP_SW_SECURITY=256
+      - CORE_PEER_BCCSP_SW_HASH=SHA2
+      - CORE_PEER_BCCSP_SW_FILEKEYSTORE_KEYSTORE=/etc/hyperledger/fabric/msp/keystore
+      - CORE_CHAINCODE_EXECUTETIMEOUT=300s
       - CORE_OPERATIONS_LISTENADDRESS=0.0.0.0:9443
     volumes:
-      - /var/run/:/host/var/run/
+      - ../config:/etc/hyperledger/fabric-config
+      - ../config/core.yaml:/etc/hyperledger/fabric/core.yaml
       - ../crypto-config/peerOrganizations/regulator.medical-network.com/peers/peer0.regulator.medical-network.com/msp:/etc/hyperledger/fabric/msp
       - ../crypto-config/peerOrganizations/regulator.medical-network.com/peers/peer0.regulator.medical-network.com/tls/:/etc/hyperledger/fabric/tls
-      - peer0.regulator.medical-network.com:/var/hyperledger/production
+      - ../crypto-config/peerOrganizations/regulator.medical-network.com/users:/etc/hyperledger/fabric/users
+      - ../channel-artifacts:/etc/hyperledger/configtx
+      - ../crypto-config/ordererOrganizations/medical-network.com/orderers/orderer0.medical-network.com/tls/ca.crt:/etc/hyperledger/orderer-tls/ca.crt
+      - ../crypto-config/peerOrganizations/hospital1.medical-network.com/peers/peer0.hospital1.medical-network.com/tls/ca.crt:/etc/hyperledger/peer-tls/hospital1/ca.crt
+      - ../crypto-config/peerOrganizations/hospital2.medical-network.com/peers/peer0.hospital2.medical-network.com/tls/ca.crt:/etc/hyperledger/peer-tls/hospital2/ca.crt
+      - ${HOME}/.docker/run/docker.sock:/host/var/run/docker.sock
+      - ${HOME}/.docker/run/docker.sock:/var/run/docker.sock
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ../../:/opt/chaincode-package
+      - ../external-builder:/opt/hyperledger/external-builder
+      - ../../chaincode/medical-records/collections_config.json:/tmp/collections_config.json
+      - ../../data/peer0.regulator:/var/hyperledger/production
     working_dir: /opt/gopath/src/github.com/hyperledger/fabric/peer
     command: peer node start
     ports:
-      - "7051:7051"
+      - "11051:7051"
       - "9443:9443"
     networks:
       - medical-network
@@ -60,9 +74,10 @@ services:
     image: hyperledger/fabric-peer:2.5.3
     platform: linux/amd64
     environment:
-      - CORE_VM_ENDPOINT=unix:///host/var/run/docker.sock
-      - CORE_VM_DOCKER_HOSTCONFIG_NETWORKMODE=medical-network
+      - DOCKER_API_VERSION=1.44
+      - FABRIC_CFG_PATH=/etc/hyperledger/fabric-config
       - FABRIC_LOGGING_SPEC=INFO
+      - CORE_LEDGER_SNAPSHOTS_ROOTDIR=/var/hyperledger/production/snapshots
       - CORE_PEER_TLS_ENABLED=true
       - CORE_PEER_GOSSIP_USELEADERELECTION=true
       - CORE_PEER_GOSSIP_ORGLEADER=false
@@ -73,21 +88,43 @@ services:
       - CORE_PEER_ID=peer0.hospital1.medical-network.com
       - CORE_PEER_ADDRESS=peer0.hospital1.medical-network.com:7051
       - CORE_PEER_LISTENADDRESS=0.0.0.0:7051
-      - CORE_PEER_CHAINCODEADDRESS=peer0.hospital1.medical-network.com:7052
+      - CORE_PEER_CHAINCODEADDRESS=peer0.regulator.medical-network.com:7052
       - CORE_PEER_CHAINCODELISTENADDRESS=0.0.0.0:7052
+      - CORE_CHAINCODE_MODE=dev
       - CORE_PEER_GOSSIP_BOOTSTRAP=peer0.hospital1.medical-network.com:7051
       - CORE_PEER_GOSSIP_EXTERNALENDPOINT=peer0.hospital1.medical-network.com:7051
+      - CORE_PEER_GOSSIP_ENDPOINT=peer0.hospital1.medical-network.com:7051
+      - CORE_PEER_ADDRESSAUTODETECT=true
       - CORE_PEER_LOCALMSPID=HospitalMSP1
+      - CORE_PEER_MSPCONFIGPATH=/etc/hyperledger/fabric/msp
+      - CORE_PEER_BCCSP_DEFAULT=SW
+      - CORE_PEER_BCCSP_SW_SECURITY=256
+      - CORE_PEER_BCCSP_SW_HASH=SHA2
+      - CORE_PEER_BCCSP_SW_FILEKEYSTORE_KEYSTORE=/etc/hyperledger/fabric/msp/keystore
+      - CORE_CHAINCODE_EXECUTETIMEOUT=300s
       - CORE_OPERATIONS_LISTENADDRESS=0.0.0.0:9443
     volumes:
-      - /var/run/:/host/var/run/
+      - ../config:/etc/hyperledger/fabric-config
+      - ../config/core.yaml:/etc/hyperledger/fabric/core.yaml
       - ../crypto-config/peerOrganizations/hospital1.medical-network.com/peers/peer0.hospital1.medical-network.com/msp:/etc/hyperledger/fabric/msp
       - ../crypto-config/peerOrganizations/hospital1.medical-network.com/peers/peer0.hospital1.medical-network.com/tls/:/etc/hyperledger/fabric/tls
-      - peer0.hospital1.medical-network.com:/var/hyperledger/production
+      - ../crypto-config/peerOrganizations/hospital1.medical-network.com/users:/etc/hyperledger/fabric/users
+      - ../channel-artifacts:/etc/hyperledger/configtx
+      - ../crypto-config/ordererOrganizations/medical-network.com/orderers/orderer0.medical-network.com/tls/ca.crt:/etc/hyperledger/orderer-tls/ca.crt
+      - ../crypto-config/peerOrganizations/hospital2.medical-network.com/peers/peer0.hospital2.medical-network.com/tls/ca.crt:/etc/hyperledger/peer-tls/hospital2/ca.crt
+      - ../crypto-config/peerOrganizations/research.medical-network.com/peers/peer0.research.medical-network.com/tls/ca.crt:/etc/hyperledger/peer-tls/research/ca.crt
+      - ../crypto-config/peerOrganizations/regulator.medical-network.com/peers/peer0.regulator.medical-network.com/tls/ca.crt:/etc/hyperledger/peer-tls/regulator/ca.crt
+      - ${HOME}/.docker/run/docker.sock:/host/var/run/docker.sock
+      - ${HOME}/.docker/run/docker.sock:/var/run/docker.sock
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ../../:/opt/chaincode-package
+      - ../external-builder:/opt/hyperledger/external-builder
+      - ../../chaincode/medical-records/collections_config.json:/tmp/collections_config.json
+      - ../../data/peer0.hospital1:/var/hyperledger/production
     working_dir: /opt/gopath/src/github.com/hyperledger/fabric/peer
     command: peer node start
     ports:
-      - "8051:7051"
+      - "12051:7051"
       - "9444:9443"
     networks:
       - medical-network
@@ -103,9 +140,10 @@ services:
     image: hyperledger/fabric-peer:2.5.3
     platform: linux/amd64
     environment:
-      - CORE_VM_ENDPOINT=unix:///host/var/run/docker.sock
-      - CORE_VM_DOCKER_HOSTCONFIG_NETWORKMODE=medical-network
+      - DOCKER_API_VERSION=1.44
+      - FABRIC_CFG_PATH=/etc/hyperledger/fabric-config
       - FABRIC_LOGGING_SPEC=INFO
+      - CORE_LEDGER_SNAPSHOTS_ROOTDIR=/var/hyperledger/production/snapshots
       - CORE_PEER_TLS_ENABLED=true
       - CORE_PEER_GOSSIP_USELEADERELECTION=true
       - CORE_PEER_GOSSIP_ORGLEADER=false
@@ -116,21 +154,40 @@ services:
       - CORE_PEER_ID=peer0.hospital2.medical-network.com
       - CORE_PEER_ADDRESS=peer0.hospital2.medical-network.com:7051
       - CORE_PEER_LISTENADDRESS=0.0.0.0:7051
-      - CORE_PEER_CHAINCODEADDRESS=peer0.hospital2.medical-network.com:7052
+      - CORE_PEER_CHAINCODEADDRESS=peer0.regulator.medical-network.com:7052
       - CORE_PEER_CHAINCODELISTENADDRESS=0.0.0.0:7052
+      - CORE_CHAINCODE_MODE=dev
       - CORE_PEER_GOSSIP_BOOTSTRAP=peer0.hospital2.medical-network.com:7051
       - CORE_PEER_GOSSIP_EXTERNALENDPOINT=peer0.hospital2.medical-network.com:7051
+      - CORE_PEER_GOSSIP_ENDPOINT=peer0.hospital2.medical-network.com:7051
+      - CORE_PEER_ADDRESSAUTODETECT=true
       - CORE_PEER_LOCALMSPID=HospitalMSP2
+      - CORE_PEER_MSPCONFIGPATH=/etc/hyperledger/fabric/msp
+      - CORE_PEER_BCCSP_DEFAULT=SW
+      - CORE_PEER_BCCSP_SW_SECURITY=256
+      - CORE_PEER_BCCSP_SW_HASH=SHA2
+      - CORE_PEER_BCCSP_SW_FILEKEYSTORE_KEYSTORE=/etc/hyperledger/fabric/msp/keystore
+      - CORE_CHAINCODE_EXECUTETIMEOUT=300s
       - CORE_OPERATIONS_LISTENADDRESS=0.0.0.0:9443
     volumes:
-      - /var/run/:/host/var/run/
+      - ../config:/etc/hyperledger/fabric-config
+      - ../config/core.yaml:/etc/hyperledger/fabric/core.yaml
       - ../crypto-config/peerOrganizations/hospital2.medical-network.com/peers/peer0.hospital2.medical-network.com/msp:/etc/hyperledger/fabric/msp
       - ../crypto-config/peerOrganizations/hospital2.medical-network.com/peers/peer0.hospital2.medical-network.com/tls/:/etc/hyperledger/fabric/tls
-      - peer0.hospital2.medical-network.com:/var/hyperledger/production
+      - ../crypto-config/peerOrganizations/hospital2.medical-network.com/users:/etc/hyperledger/fabric/users
+      - ../channel-artifacts:/etc/hyperledger/configtx
+      - ../crypto-config/ordererOrganizations/medical-network.com/orderers/orderer0.medical-network.com/tls/ca.crt:/etc/hyperledger/orderer-tls/ca.crt
+      - ${HOME}/.docker/run/docker.sock:/host/var/run/docker.sock
+      - ${HOME}/.docker/run/docker.sock:/var/run/docker.sock
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ../../:/opt/chaincode-package
+      - ../external-builder:/opt/hyperledger/external-builder
+      - ../../chaincode/medical-records/collections_config.json:/tmp/collections_config.json
+      - ../../data/peer0.hospital2:/var/hyperledger/production
     working_dir: /opt/gopath/src/github.com/hyperledger/fabric/peer
     command: peer node start
     ports:
-      - "9051:7051"
+      - "13051:7051"
       - "9445:9443"
     networks:
       - medical-network
@@ -146,9 +203,10 @@ services:
     image: hyperledger/fabric-peer:2.5.3
     platform: linux/amd64
     environment:
-      - CORE_VM_ENDPOINT=unix:///host/var/run/docker.sock
-      - CORE_VM_DOCKER_HOSTCONFIG_NETWORKMODE=medical-network
+      - DOCKER_API_VERSION=1.44
+      - FABRIC_CFG_PATH=/etc/hyperledger/fabric-config
       - FABRIC_LOGGING_SPEC=INFO
+      - CORE_LEDGER_SNAPSHOTS_ROOTDIR=/var/hyperledger/production/snapshots
       - CORE_PEER_TLS_ENABLED=true
       - CORE_PEER_GOSSIP_USELEADERELECTION=true
       - CORE_PEER_GOSSIP_ORGLEADER=false
@@ -159,21 +217,40 @@ services:
       - CORE_PEER_ID=peer0.research.medical-network.com
       - CORE_PEER_ADDRESS=peer0.research.medical-network.com:7051
       - CORE_PEER_LISTENADDRESS=0.0.0.0:7051
-      - CORE_PEER_CHAINCODEADDRESS=peer0.research.medical-network.com:7052
+      - CORE_PEER_CHAINCODEADDRESS=peer0.regulator.medical-network.com:7052
       - CORE_PEER_CHAINCODELISTENADDRESS=0.0.0.0:7052
+      - CORE_CHAINCODE_MODE=dev
       - CORE_PEER_GOSSIP_BOOTSTRAP=peer0.research.medical-network.com:7051
       - CORE_PEER_GOSSIP_EXTERNALENDPOINT=peer0.research.medical-network.com:7051
+      - CORE_PEER_GOSSIP_ENDPOINT=peer0.research.medical-network.com:7051
+      - CORE_PEER_ADDRESSAUTODETECT=true
       - CORE_PEER_LOCALMSPID=ResearchOrgMSP
+      - CORE_PEER_MSPCONFIGPATH=/etc/hyperledger/fabric/msp
+      - CORE_PEER_BCCSP_DEFAULT=SW
+      - CORE_PEER_BCCSP_SW_SECURITY=256
+      - CORE_PEER_BCCSP_SW_HASH=SHA2
+      - CORE_PEER_BCCSP_SW_FILEKEYSTORE_KEYSTORE=/etc/hyperledger/fabric/msp/keystore
+      - CORE_CHAINCODE_EXECUTETIMEOUT=300s
       - CORE_OPERATIONS_LISTENADDRESS=0.0.0.0:9443
     volumes:
-      - /var/run/:/host/var/run/
+      - ../config:/etc/hyperledger/fabric-config
+      - ../config/core.yaml:/etc/hyperledger/fabric/core.yaml
       - ../crypto-config/peerOrganizations/research.medical-network.com/peers/peer0.research.medical-network.com/msp:/etc/hyperledger/fabric/msp
       - ../crypto-config/peerOrganizations/research.medical-network.com/peers/peer0.research.medical-network.com/tls/:/etc/hyperledger/fabric/tls
-      - peer0.research.medical-network.com:/var/hyperledger/production
+      - ../crypto-config/peerOrganizations/research.medical-network.com/users:/etc/hyperledger/fabric/users
+      - ../channel-artifacts:/etc/hyperledger/configtx
+      - ../crypto-config/ordererOrganizations/medical-network.com/orderers/orderer0.medical-network.com/tls/ca.crt:/etc/hyperledger/orderer-tls/ca.crt
+      - ${HOME}/.docker/run/docker.sock:/host/var/run/docker.sock
+      - ${HOME}/.docker/run/docker.sock:/var/run/docker.sock
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ../../:/opt/chaincode-package
+      - ../external-builder:/opt/hyperledger/external-builder
+      - ../../chaincode/medical-records/collections_config.json:/tmp/collections_config.json
+      - ../../data/peer0.research:/var/hyperledger/production
     working_dir: /opt/gopath/src/github.com/hyperledger/fabric/peer
     command: peer node start
     ports:
-      - "10051:7051"
+      - "14051:7051"
       - "9446:9443"
     networks:
       - medical-network
@@ -182,3 +259,19 @@ services:
       interval: 10s
       timeout: 3s
       retries: 5
+
+  medicalcc:
+    container_name: medicalcc
+    image: node:18-alpine
+    working_dir: /chaincode
+    environment:
+      - CORE_CHAINCODE_ID_NAME=medicalcc
+    volumes:
+      - ../../chaincode/medical-records:/chaincode
+    command: >
+      sh -c "
+      npm install &&
+      npm start -- --peer.address=peer0.regulator.medical-network.com:7052
+      "
+    networks:
+      - medical-network

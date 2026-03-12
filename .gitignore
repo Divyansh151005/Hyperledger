@@ -1,31 +1,24 @@
-# Hyperledger Fabric Network
-network/crypto-config/
-network/channel-artifacts/
-*.block
-*.tx
+# Node
+node_modules/
 
-# Docker
-docker-compose.override.yaml
+# Fabric generated crypto
+crypto-config/
+organizations/
 
-# Logs
+# Channel artifacts
+channel-artifacts/
+
+# Docker volumes
+data/
 *.log
-logs/
 
-# Environment files
-.env.local
-.env.*.local
+# Fabric chaincode builds
+build/
+dist/
 
-# IDE
-.vscode/
-.idea/
-*.swp
-*.swo
-*~
+# MinIO storage
+medical-records/
+minio-data/
 
 # OS
 .DS_Store
-Thumbs.db
-
-# Temporary files
-*.tmp
-*.temp

@@ -1,0 +1,7 @@
+#!/bin/bash
+set -e
+
+SRC=$1
+OUTPUT=$2
+
+cp -r $SRC/* $OUTPUT/

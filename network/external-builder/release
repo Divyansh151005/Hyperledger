@@ -1,0 +1,9 @@
+#!/bin/bash
+set -e
+
+BUILD_DIR=$1
+RELEASE_DIR=$2
+
+mkdir -p "$RELEASE_DIR"
+
+tar -xzf "$BUILD_DIR/code.tar.gz" -C "$RELEASE_DIR"

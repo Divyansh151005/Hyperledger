@@ -14,6 +14,8 @@ Organizations:
         Name: OrdererMSP
         ID: OrdererMSP
         MSPDir: ../crypto-config/ordererOrganizations/medical-network.com/msp
+        OrdererEndpoints:
+            - orderer0.medical-network.com:7050
         Policies:
             Readers:
                 Type: Signature
@@ -43,6 +45,9 @@ Organizations:
             Endorsement:
                 Type: Signature
                 Rule: "OR('RegulatorMSP.peer')"
+        AnchorPeers:
+            - Host: peer0.regulator.medical-network.com
+              Port: 7051
 
     # Hospital 1 Organization
     - &HospitalMSP1
@@ -62,6 +67,9 @@ Organizations:
             Endorsement:
                 Type: Signature
                 Rule: "OR('HospitalMSP1.peer')"
+        AnchorPeers:
+            - Host: peer0.hospital1.medical-network.com
+              Port: 7051
 
     # Hospital 2 Organization
     - &HospitalMSP2
@@ -81,6 +89,9 @@ Organizations:
             Endorsement:
                 Type: Signature
                 Rule: "OR('HospitalMSP2.peer')"
+        AnchorPeers:
+            - Host: peer0.hospital2.medical-network.com
+              Port: 7051
 
     # Research Organization
     - &ResearchOrgMSP
@@ -100,6 +111,9 @@ Organizations:
             Endorsement:
                 Type: Signature
                 Rule: "OR('ResearchOrgMSP.peer')"
+        AnchorPeers:
+            - Host: peer0.research.medical-network.com
+              Port: 7051
 
 ################################################################################
 #
@@ -160,14 +174,6 @@ Orderer: &OrdererDefaults
               Port: 7050
               ClientTLSCert: ../crypto-config/ordererOrganizations/medical-network.com/orderers/orderer0.medical-network.com/tls/server.crt
               ServerTLSCert: ../crypto-config/ordererOrganizations/medical-network.com/orderers/orderer0.medical-network.com/tls/server.crt
-            - Host: orderer1.medical-network.com
-              Port: 7050
-              ClientTLSCert: ../crypto-config/ordererOrganizations/medical-network.com/orderers/orderer1.medical-network.com/tls/server.crt
-              ServerTLSCert: ../crypto-config/ordererOrganizations/medical-network.com/orderers/orderer1.medical-network.com/tls/server.crt
-            - Host: orderer2.medical-network.com
-              Port: 7050
-              ClientTLSCert: ../crypto-config/ordererOrganizations/medical-network.com/orderers/orderer2.medical-network.com/tls/server.crt
-              ServerTLSCert: ../crypto-config/ordererOrganizations/medical-network.com/orderers/orderer2.medical-network.com/tls/server.crt
 
     BatchTimeout: 2s
     BatchSize:

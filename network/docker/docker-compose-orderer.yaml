@@ -1,13 +1,6 @@
-version: '3.8'
-
 networks:
   medical-network:
     name: medical-network
-
-volumes:
-  orderer0.medical-network.com:
-  orderer1.medical-network.com:
-  orderer2.medical-network.com:
 
 services:
   # Orderer 0
@@ -42,9 +35,10 @@ services:
       - ../channel-artifacts/genesis.block:/var/hyperledger/orderer/orderer.genesis.block
       - ../crypto-config/ordererOrganizations/medical-network.com/orderers/orderer0.medical-network.com/msp:/var/hyperledger/orderer/msp
       - ../crypto-config/ordererOrganizations/medical-network.com/orderers/orderer0.medical-network.com/tls/:/var/hyperledger/orderer/tls
-      - orderer0.medical-network.com:/var/hyperledger/production/orderer
+      - ../../data/orderer0:/var/hyperledger/production
     ports:
       - "7050:7050"
+      - "7051:7051"
       - "8443:8443"
     networks:
       - medical-network
@@ -85,9 +79,10 @@ services:
       - ../channel-artifacts/genesis.block:/var/hyperledger/orderer/orderer.genesis.block
       - ../crypto-config/ordererOrganizations/medical-network.com/orderers/orderer1.medical-network.com/msp:/var/hyperledger/orderer/msp
       - ../crypto-config/ordererOrganizations/medical-network.com/orderers/orderer1.medical-network.com/tls/:/var/hyperledger/orderer/tls
-      - orderer1.medical-network.com:/var/hyperledger/production/orderer
+      - ../../data/orderer1:/var/hyperledger/production
     ports:
       - "8050:7050"
+      - "8051:7051"
       - "8444:8443"
     networks:
       - medical-network
@@ -128,9 +123,10 @@ services:
       - ../channel-artifacts/genesis.block:/var/hyperledger/orderer/orderer.genesis.block
       - ../crypto-config/ordererOrganizations/medical-network.com/orderers/orderer2.medical-network.com/msp:/var/hyperledger/orderer/msp
       - ../crypto-config/ordererOrganizations/medical-network.com/orderers/orderer2.medical-network.com/tls/:/var/hyperledger/orderer/tls
-      - orderer2.medical-network.com:/var/hyperledger/production/orderer
+      - ../../data/orderer2:/var/hyperledger/production
     ports:
       - "9050:7050"
+      - "9051:7051"
       - "8445:8443"
     networks:
       - medical-network

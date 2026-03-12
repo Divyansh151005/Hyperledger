@@ -1,0 +1,8 @@
+#!/bin/bash
+set -e
+
+SOURCE_DIR=$1
+BUILD_DIR=$2
+
+mkdir -p "$BUILD_DIR"
+cp "$SOURCE_DIR/code.tar.gz" "$BUILD_DIR/"

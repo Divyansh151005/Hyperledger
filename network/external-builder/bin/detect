@@ -1,0 +1,18 @@
+#!/bin/bash
+set -e
+
+CHAINCODE_SOURCE_DIR="$1"
+CHAINCODE_METADATA_DIR="$2"
+
+if [ -f "$CHAINCODE_METADATA_DIR/metadata.json" ]; then
+    if command -v jq >/dev/null 2>&1; then
+        type=$(jq -r .type "$CHAINCODE_METADATA_DIR/metadata.json" 2>/dev/null | tr '[:upper:]' '[:lower:]' || true)
+    else
+        type=$(grep -o '"type"[[:space:]]*:[[:space:]]*"[^"]*"' "$CHAINCODE_METADATA_DIR/metadata.json" 2>/dev/null | head -1 | sed 's/.*"\([^"]*\)".*/\1/' | tr '[:upper:]' '[:lower:]' || true)
+    fi
+    if [ "$type" = "node" ] || [ "$type" = "external" ]; then
+        exit 0
+    fi
+fi
+
+exit 1

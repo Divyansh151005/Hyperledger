@@ -1,5 +1,7 @@
 #!/bin/bash
 
+export FABRIC_CFG_PATH=$PWD/network/config
+
 ################################################################################
 # Create Medical Main Channel
 # This script creates the medical-main-channel and joins all peers to it
@@ -52,19 +54,22 @@ create_channel() {
     local PEER_PORT=$4
     
     echo -e "\n${YELLOW}Creating channel from ${MSP_ID}...${NC}"
-    
-    export CORE_PEER_LOCALMSPID="${MSP_ID}"
-    export CORE_PEER_TLS_ENABLED=true
-    export CORE_PEER_MSPCONFIGPATH="${CRYPTO_CONFIG_DIR}/peerOrganizations/${ORG_DOMAIN}/users/Admin@${ORG_DOMAIN}/msp"
-    export CORE_PEER_ADDRESS="${PEER_NAME}:${PEER_PORT}"
-    export CORE_PEER_TLS_ROOTCERT_FILE="${CRYPTO_CONFIG_DIR}/peerOrganizations/${ORG_DOMAIN}/peers/${PEER_NAME}/tls/ca.crt"
-    
-    peer channel create -o "${ORDERER_ADDRESS}" \
-        -c "${CHANNEL_NAME}" \
-        -f "${CHANNEL_TX}" \
+
+    docker exec peer0.regulator.medical-network.com bash -c "
+        export CORE_PEER_LOCALMSPID=\"RegulatorMSP\"
+        export CORE_PEER_TLS_ENABLED=true
+        export CORE_PEER_ADDRESS=peer0.regulator.medical-network.com:7051
+        export CORE_PEER_MSPCONFIGPATH=/etc/hyperledger/fabric/users/Admin@regulator.medical-network.com/msp
+        export CORE_PEER_TLS_ROOTCERT_FILE=/etc/hyperledger/fabric/tls/ca.crt
+        sleep 10
+        peer channel create \
+        -o orderer0.medical-network.com:7050 \
+        -c medical-main-channel \
+        -f /etc/hyperledger/configtx/medical-main-channel.tx \
+        --outputBlock /etc/hyperledger/configtx/medical-main-channel.block \
         --tls \
-        --cafile "${ORDERER_TLS_CA}" \
-        --outputBlock "${CHANNEL_ARTIFACTS_DIR}/${CHANNEL_NAME}.block"
+        --cafile /etc/hyperledger/orderer-tls/ca.crt
+    "
     
     if [ $? -eq 0 ]; then
         echo -e "${GREEN}Channel created successfully!${NC}"
@@ -83,14 +88,18 @@ join_channel() {
     local PEER_PORT=$4
     
     echo -e "\n${YELLOW}Joining ${PEER_NAME} to channel...${NC}"
-    
-    export CORE_PEER_LOCALMSPID="${MSP_ID}"
-    export CORE_PEER_TLS_ENABLED=true
-    export CORE_PEER_MSPCONFIGPATH="${CRYPTO_CONFIG_DIR}/peerOrganizations/${ORG_DOMAIN}/users/Admin@${ORG_DOMAIN}/msp"
-    export CORE_PEER_ADDRESS="${PEER_NAME}:${PEER_PORT}"
-    export CORE_PEER_TLS_ROOTCERT_FILE="${CRYPTO_CONFIG_DIR}/peerOrganizations/${ORG_DOMAIN}/peers/${PEER_NAME}/tls/ca.crt"
-    
-    peer channel join -b "${CHANNEL_ARTIFACTS_DIR}/${CHANNEL_NAME}.block"
+
+    docker exec "${PEER_NAME}" bash -c "
+        export CORE_PEER_LOCALMSPID=\"${MSP_ID}\"
+        export CORE_PEER_TLS_ENABLED=true
+        export CORE_PEER_ADDRESS=${PEER_NAME}:7051
+        export CORE_PEER_TLS_ROOTCERT_FILE=/etc/hyperledger/fabric/tls/ca.crt
+        export CORE_PEER_MSPCONFIGPATH=/etc/hyperledger/fabric/users/Admin@${ORG_DOMAIN}/msp
+        peer channel join \
+        -b /etc/hyperledger/configtx/${CHANNEL_NAME}.block \
+        --tls \
+        --cafile /etc/hyperledger/orderer-tls/ca.crt
+    "
     
     if [ $? -eq 0 ]; then
         echo -e "${GREEN}${PEER_NAME} joined channel successfully!${NC}"

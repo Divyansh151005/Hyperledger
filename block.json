@@ -1,0 +1,163 @@
+{
+	"data": {
+		"data": [
+			{
+				"payload": {
+					"data": {
+						"actions": [
+							{
+								"header": {
+									"creator": {
+										"id_bytes": "LS0tLS1CRUdJTiBDRVJUSUZJQ0FURS0tLS0tCk1JSUNVRENDQWZlZ0F3SUJBZ0lRRmJ5Yld0TFBFa0VOY0JkVWJrZWRnakFLQmdncWhrak9QUVFEQWpDQmpURUwKTUFrR0ExVUVCaE1DVlZNeEV6QVJCZ05WQkFnVENrTmhiR2xtYjNKdWFXRXhGakFVQmdOVkJBY1REVk5oYmlCRwpjbUZ1WTJselkyOHhKakFrQmdOVkJBb1RIV2h2YzNCcGRHRnNNUzV0WldScFkyRnNMVzVsZEhkdmNtc3VZMjl0Ck1Ta3dKd1lEVlFRREV5QmpZUzVvYjNOd2FYUmhiREV1YldWa2FXTmhiQzF1WlhSM2IzSnJMbU52YlRBZUZ3MHkKTmpBek1UQXhOekE0TURCYUZ3MHpOakF6TURjeE56QTRNREJhTUhneEN6QUpCZ05WQkFZVEFsVlRNUk13RVFZRApWUVFJRXdwRFlXeHBabTl5Ym1saE1SWXdGQVlEVlFRSEV3MVRZVzRnUm5KaGJtTnBjMk52TVE0d0RBWURWUVFMCkV3VmhaRzFwYmpFc01Db0dBMVVFQXd3alFXUnRhVzVBYUc5emNHbDBZV3d4TG0xbFpHbGpZV3d0Ym1WMGQyOXkKYXk1amIyMHdXVEFUQmdjcWhrak9QUUlCQmdncWhrak9QUU1CQndOQ0FBUlR0b0dhczY1TFdnUEJBQ2xML3E5UgpVRXVyN2tsRmFXRUROMW9iQ0JQdVczVUtRM1paaU1qUkN2aFVSbEIydktJZEUwaWZoWSs0U0tzdDIrcE8zU2prCm8wMHdTekFPQmdOVkhROEJBZjhFQkFNQ0I0QXdEQVlEVlIwVEFRSC9CQUl3QURBckJnTlZIU01FSkRBaWdDQ3EKaFZrcjRaMVRacDE2TXFsRGQ2WnM0Ujgya05OSTAxaVppK1kxVnpvVkpqQUtCZ2dxaGtqT1BRUURBZ05IQURCRQpBaUIxc25kOW9kbnpHblNRZ3NtS2JQTmtxS2dsUmdEOFZQQm45SXlDTWFDRE9RSWdFakNNTU9HTlJGSHdzc0dSCjVrbEZJcTNMb0FlUVhIeVVJa1kwcEZ1eVFKST0KLS0tLS1FTkQgQ0VSVElGSUNBVEUtLS0tLQo=",
+										"mspid": "HospitalMSP1"
+									},
+									"nonce": "4/sX46+FMVJo6mw6/ggi7bdroGMOuGPV"
+								},
+								"payload": {
+									"action": {
+										"endorsements": [
+											{
+												"endorser": "CgxIb3NwaXRhbE1TUDES3wYtLS0tLUJFR0lOIENFUlRJRklDQVRFLS0tLS0KTUlJQ1R6Q0NBZmFnQXdJQkFnSVFVZUVZdU5Db0F3OEs2U2F3c3ZpTUpEQUtCZ2dxaGtqT1BRUURBakNCalRFTApNQWtHQTFVRUJoTUNWVk14RXpBUkJnTlZCQWdUQ2tOaGJHbG1iM0p1YVdFeEZqQVVCZ05WQkFjVERWTmhiaUJHCmNtRnVZMmx6WTI4eEpqQWtCZ05WQkFvVEhXaHZjM0JwZEdGc01TNXRaV1JwWTJGc0xXNWxkSGR2Y21zdVkyOXQKTVNrd0p3WURWUVFERXlCallTNW9iM053YVhSaGJERXViV1ZrYVdOaGJDMXVaWFIzYjNKckxtTnZiVEFlRncweQpOakF6TVRBeE56QTRNREJhRncwek5qQXpNRGN4TnpBNE1EQmFNSGN4Q3pBSkJnTlZCQVlUQWxWVE1STXdFUVlEClZRUUlFd3BEWVd4cFptOXlibWxoTVJZd0ZBWURWUVFIRXcxVFlXNGdSbkpoYm1OcGMyTnZNUTB3Q3dZRFZRUUwKRXdSd1pXVnlNU3d3S2dZRFZRUURFeU53WldWeU1DNW9iM053YVhSaGJERXViV1ZrYVdOaGJDMXVaWFIzYjNKcgpMbU52YlRCWk1CTUdCeXFHU000OUFnRUdDQ3FHU000OUF3RUhBMElBQkdsYXd4MHZ6SVBEN2krTDJkSE5SK2N1CnNKZDhoYURqSy9CL0VkRFhRZkZ3b2FBb0FrNUZxYk9tUWpUbjBRbUU3dndQV0JZdFRoNlR3NXRiNU5sY1FiaWoKVFRCTE1BNEdBMVVkRHdFQi93UUVBd0lIZ0RBTUJnTlZIUk1CQWY4RUFqQUFNQ3NHQTFVZEl3UWtNQ0tBSUtxRgpXU3ZoblZObW5Yb3lxVU4zcG16aEh6YVEwMGpUV0ptTDVqVlhPaFVtTUFvR0NDcUdTTTQ5QkFNQ0EwY0FNRVFDCklGN1J1bVBwN0ZzRWpwa2ZDbm5oNzdGY1BXNXpYbUV3azc5QUJ3UXNDSVBlQWlCRnNpL2VJOS9yNlZnQmt3WHMKOUVkMXBTRytyWGV2czF5ek80U2hiMEt0YVE9PQotLS0tLUVORCBDRVJUSUZJQ0FURS0tLS0tCg==",
+												"signature": "MEQCIHblwjhsVqTiJFGi7q7rpddfMOw95h226ii+DPAPk17GAiB+J5nHWsB69U5fTbC++5Q7DAR+dIbGspf0i/9q0fjYwA=="
+											}
+										],
+										"proposal_response_payload": {
+											"extension": {
+												"chaincode_id": {
+													"name": "medicalcc",
+													"path": "",
+													"version": "1.0"
+												},
+												"events": {
+													"chaincode_id": "medicalcc",
+													"event_name": "RecordUploaded",
+													"payload": "eyJyZWNvcmRJRCI6InJlY19kZW1vIiwicGF0aWVudElEIjoicGF0aWVudDEiLCJob3NwaXRhbElEIjoiaG9zcGl0YWwxIiwidGltZXN0YW1wIjoxNzczMjAyMTExNTgxfQ==",
+													"tx_id": "ff0ef2c9f0daecf5f69904df31e2ac58c7e529b8ae7e12d8931155f14fd2bffc"
+												},
+												"response": {
+													"message": "",
+													"payload": "eyJzdWNjZXNzIjp0cnVlLCJyZWNvcmRJRCI6InJlY19kZW1vIiwidGltZXN0YW1wIjoxNzczMjAyMTExNTgxfQ==",
+													"status": 200
+												},
+												"results": {
+													"data_model": "KV",
+													"ns_rwset": [
+														{
+															"collection_hashed_rwset": [],
+															"namespace": "_lifecycle",
+															"rwset": {
+																"metadata_writes": [],
+																"range_queries_info": [],
+																"reads": [
+																	{
+																		"key": "namespaces/fields/medicalcc/Sequence",
+																		"version": {
+																			"block_num": "64",
+																			"tx_num": "0"
+																		}
+																	}
+																],
+																"writes": []
+															}
+														},
+														{
+															"collection_hashed_rwset": [],
+															"namespace": "medicalcc",
+															"rwset": {
+																"metadata_writes": [],
+																"range_queries_info": [],
+																"reads": [
+																	{
+																		"key": "RECORD:rec_demo",
+																		"version": null
+																	}
+																],
+																"writes": [
+																	{
+																		"is_delete": false,
+																		"key": "RECORD:rec_demo",
+																		"value": "eyJyZWNvcmRJRCI6InJlY19kZW1vIiwicGF0aWVudElEIjoicGF0aWVudDEiLCJob3NwaXRhbElEIjoiaG9zcGl0YWwxIiwiZmlsZUhhc2giOiJoYXNoX2RlbW8iLCJtaW5pb1BhdGgiOiJtaW5pby9yZXBvcnRzL3JlY19kZW1vLnBkZiIsInRpbWVzdGFtcCI6MTc3MzIwMjExMTU4MX0="
+																	}
+																]
+															}
+														}
+													]
+												}
+											},
+											"proposal_hash": "x1OonXGBCzkbbSq97SqPZePJ6kBB/UyonxipSHlgZoY="
+										}
+									},
+									"chaincode_proposal_payload": {
+										"TransientMap": {},
+										"input": {
+											"chaincode_spec": {
+												"chaincode_id": {
+													"name": "medicalcc",
+													"path": "",
+													"version": ""
+												},
+												"input": {
+													"args": [
+														"dXBsb2FkTWVkaWNhbFJlY29yZA==",
+														"cmVjX2RlbW8=",
+														"cGF0aWVudDE=",
+														"aGFzaF9kZW1v",
+														"bWluaW8vcmVwb3J0cy9yZWNfZGVtby5wZGY="
+													],
+													"decorations": {},
+													"is_init": false
+												},
+												"timeout": 0,
+												"type": "GOLANG"
+											}
+										}
+									}
+								}
+							}
+						]
+					},
+					"header": {
+						"channel_header": {
+							"channel_id": "medical-main-channel",
+							"epoch": "0",
+							"extension": {
+								"chaincode_id": {
+									"name": "medicalcc",
+									"path": "",
+									"version": ""
+								}
+							},
+							"timestamp": "2026-03-11T04:08:31.502641875Z",
+							"tls_cert_hash": null,
+							"tx_id": "ff0ef2c9f0daecf5f69904df31e2ac58c7e529b8ae7e12d8931155f14fd2bffc",
+							"type": 3,
+							"version": 0
+						},
+						"signature_header": {
+							"creator": {
+								"id_bytes": "LS0tLS1CRUdJTiBDRVJUSUZJQ0FURS0tLS0tCk1JSUNVRENDQWZlZ0F3SUJBZ0lRRmJ5Yld0TFBFa0VOY0JkVWJrZWRnakFLQmdncWhrak9QUVFEQWpDQmpURUwKTUFrR0ExVUVCaE1DVlZNeEV6QVJCZ05WQkFnVENrTmhiR2xtYjNKdWFXRXhGakFVQmdOVkJBY1REVk5oYmlCRwpjbUZ1WTJselkyOHhKakFrQmdOVkJBb1RIV2h2YzNCcGRHRnNNUzV0WldScFkyRnNMVzVsZEhkdmNtc3VZMjl0Ck1Ta3dKd1lEVlFRREV5QmpZUzVvYjNOd2FYUmhiREV1YldWa2FXTmhiQzF1WlhSM2IzSnJMbU52YlRBZUZ3MHkKTmpBek1UQXhOekE0TURCYUZ3MHpOakF6TURjeE56QTRNREJhTUhneEN6QUpCZ05WQkFZVEFsVlRNUk13RVFZRApWUVFJRXdwRFlXeHBabTl5Ym1saE1SWXdGQVlEVlFRSEV3MVRZVzRnUm5KaGJtTnBjMk52TVE0d0RBWURWUVFMCkV3VmhaRzFwYmpFc01Db0dBMVVFQXd3alFXUnRhVzVBYUc5emNHbDBZV3d4TG0xbFpHbGpZV3d0Ym1WMGQyOXkKYXk1amIyMHdXVEFUQmdjcWhrak9QUUlCQmdncWhrak9QUU1CQndOQ0FBUlR0b0dhczY1TFdnUEJBQ2xML3E5UgpVRXVyN2tsRmFXRUROMW9iQ0JQdVczVUtRM1paaU1qUkN2aFVSbEIydktJZEUwaWZoWSs0U0tzdDIrcE8zU2prCm8wMHdTekFPQmdOVkhROEJBZjhFQkFNQ0I0QXdEQVlEVlIwVEFRSC9CQUl3QURBckJnTlZIU01FSkRBaWdDQ3EKaFZrcjRaMVRacDE2TXFsRGQ2WnM0Ujgya05OSTAxaVppK1kxVnpvVkpqQUtCZ2dxaGtqT1BRUURBZ05IQURCRQpBaUIxc25kOW9kbnpHblNRZ3NtS2JQTmtxS2dsUmdEOFZQQm45SXlDTWFDRE9RSWdFakNNTU9HTlJGSHdzc0dSCjVrbEZJcTNMb0FlUVhIeVVJa1kwcEZ1eVFKST0KLS0tLS1FTkQgQ0VSVElGSUNBVEUtLS0tLQo=",
+								"mspid": "HospitalMSP1"
+							},
+							"nonce": "4/sX46+FMVJo6mw6/ggi7bdroGMOuGPV"
+						}
+					}
+				},
+				"signature": "MEUCIQC0WwSSsYGnC1H5YjTGsd55jJ9GtIJDxVx9GdT8SxvEDgIgS+ZnmoZg6AWMCHtjG0YfWMAT3uNEuYYsLAkprhi4sas="
+			}
+		]
+	},
+	"header": {
+		"data_hash": "MUk93Iba6hczfKDWMjgMfxrYWT58pBcIk7bKExCKEnQ=",
+		"number": "69",
+		"previous_hash": "hKzdhUi3THM/pLzB1Rx5VAVmLiTMwtCkpXE6j1ER2Pc="
+	},
+	"metadata": {
+		"metadata": [
+			"Cg8KAggEEgkKBwoBARACGEcSsQcK5gYKyQYKCk9yZGVyZXJNU1ASugYtLS0tLUJFR0lOIENFUlRJRklDQVRFLS0tLS0KTUlJQ05qQ0NBZDJnQXdJQkFnSVFWbkhHT1hzOS9yZUI0d2s2RmczS0x6QUtCZ2dxaGtqT1BRUURBakI1TVFzdwpDUVlEVlFRR0V3SlZVekVUTUJFR0ExVUVDQk1LUTJGc2FXWnZjbTVwWVRFV01CUUdBMVVFQnhNTlUyRnVJRVp5CllXNWphWE5qYnpFY01Cb0dBMVVFQ2hNVGJXVmthV05oYkMxdVpYUjNiM0pyTG1OdmJURWZNQjBHQTFVRUF4TVcKWTJFdWJXVmthV05oYkMxdVpYUjNiM0pyTG1OdmJUQWVGdzB5TmpBek1UQXhOekE0TURCYUZ3MHpOakF6TURjeApOekE0TURCYU1ITXhDekFKQmdOVkJBWVRBbFZUTVJNd0VRWURWUVFJRXdwRFlXeHBabTl5Ym1saE1SWXdGQVlEClZRUUhFdzFUWVc0Z1JuSmhibU5wYzJOdk1SQXdEZ1lEVlFRTEV3ZHZjbVJsY21WeU1TVXdJd1lEVlFRREV4eHYKY21SbGNtVnlNQzV0WldScFkyRnNMVzVsZEhkdmNtc3VZMjl0TUZrd0V3WUhLb1pJemowQ0FRWUlLb1pJemowRApBUWNEUWdBRUpidGVhOXJKdFJqSGQ5dXAyaGlPcUxpYTJhNlZTclRmVmRJV3EwTW9md3k5S2d1cjZVZVh2SytXClA0ZEVFNncwdmxJK0llMERIOUR1d0hNSVFpVy9ES05OTUVzd0RnWURWUjBQQVFIL0JBUURBZ2VBTUF3R0ExVWQKRXdFQi93UUNNQUF3S3dZRFZSMGpCQ1F3SW9BZ3hMOHgyNGY1VTlXMjJKNUgvaS9tOG0rNTMySEQreWdNaTExYgo5NjBjZ3E4d0NnWUlLb1pJemowRUF3SURSd0F3UkFJZ0FqS3FHT1l6OVEwQ3ZTRm9aL0hEY3hzT1FKSVF4MnVHCklCaUo1QlRPNXJzQ0lCd210YTROZTBkSmkyWVdEUHpCemZZZzBkR0xDWFY2VTFOcnRkRWY1SXkyCi0tLS0tRU5EIENFUlRJRklDQVRFLS0tLS0KEhjvTqJJSPsLoTaousMu2RQWnPIibHFtXDISRjBEAiAKTMm9EVSvwp4M99R/e7P2DGQ3zIjBbXWGJdmCBeM0wQIgCsSEn8a0SzYxgSVXVN0CKL8xmcDDtnyVtErG4uPoVFA=",
+			"CgIIBA==",
+			"",
+			"",
+			""
+		]
+	}
+}

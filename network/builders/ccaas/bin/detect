@@ -1,0 +1,14 @@
+#!/bin/bash
+set -e
+
+METADATA="$2/metadata.json"
+
+if [ ! -f "$METADATA" ]; then
+  exit 1
+fi
+
+if grep -q '"type": *"external"' "$METADATA"; then
+  exit 0
+fi
+
+exit 1

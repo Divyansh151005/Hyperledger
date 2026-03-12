@@ -1,0 +1,11 @@
+#!/bin/bash
+set -e
+
+SOURCE=$1
+BUILD_OUTPUT=$3
+
+mkdir -p "$BUILD_OUTPUT"
+
+tar -xzf "$SOURCE/code.tar.gz" -C "$BUILD_OUTPUT"
+
+exit 0

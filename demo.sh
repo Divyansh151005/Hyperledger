@@ -15,7 +15,7 @@ RED='\033[0;31m'
 NC='\033[0m' # No Color
 
 # Configuration
-API_BASE="http://localhost:8080/api/v1"
+API_BASE="http://localhost:8080/health"
 HOSPITAL_CERT="hospital1admin"
 PATIENT_CERT="patient1"
 RESEARCHER_CERT="researcher1"

@@ -2,11 +2,8 @@ package fabric
 
 import (
 	"context"
-	"crypto/x509"
-	"encoding/pem"
 	"fmt"
 	"os"
-	"path/filepath"
 
 	"github.com/hyperledger/fabric-gateway/pkg/client"
 	"github.com/hyperledger/fabric-gateway/pkg/identity"
@@ -100,59 +97,47 @@ func (g *Gateway) GetContract(chaincodeName string) *client.Contract {
 
 // loadIdentity loads the client identity from certificate
 func loadIdentity() (*identity.X509Identity, error) {
-	certPath := getEnv("FABRIC_CERT_PATH", "./crypto-config/peerOrganizations/hospital1.medical-network.com/users/User1@hospital1.medical-network.com/msp/signcerts/User1@hospital1.medical-network.com-cert.pem")
-	keyPath := getEnv("FABRIC_KEY_PATH", "./crypto-config/peerOrganizations/hospital1.medical-network.com/users/User1@hospital1.medical-network.com/msp/keystore")
+	certPath := os.Getenv("FABRIC_CERT_PATH")
+	mspID := os.Getenv("FABRIC_MSP_ID")
+
+	if certPath == "" {
+		return nil, fmt.Errorf("FABRIC_CERT_PATH is not set")
+	}
+	if mspID == "" {
+		return nil, fmt.Errorf("FABRIC_MSP_ID is not set")
+	}
 
 	certPEM, err := os.ReadFile(certPath)
 	if err != nil {
 		return nil, fmt.Errorf("failed to read certificate: %w", err)
 	}
 
-	// Parse the X.509 certificate
-	cert, err := ParseCertificate(certPEM)
+	certificate, err := identity.CertificateFromPEM(certPEM)
 	if err != nil {
 		return nil, fmt.Errorf("failed to parse certificate: %w", err)
 	}
 
-	// Find private key (for signer, not needed here but kept for reference)
-	keyFiles, err := filepath.Glob(filepath.Join(keyPath, "*_sk"))
-	if err != nil || len(keyFiles) == 0 {
-		return nil, fmt.Errorf("failed to find private key")
-	}
-
-	key, err := os.ReadFile(keyFiles[0])
-	if err != nil {
-		return nil, fmt.Errorf("failed to read private key: %w", err)
-	}
-
-	// Create identity with parsed certificate
-	id, err := identity.NewX509Identity("HospitalMSP1", cert)
+	id, err := identity.NewX509Identity(mspID, certificate)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create identity: %w", err)
 	}
-
-	// Note: Private key is used for signer, not identity
-	_ = key
 
 	return id, nil
 }
 
 // loadSigner loads the signer for transactions
 func loadSigner() (identity.Sign, error) {
-	keyPath := getEnv("FABRIC_KEY_PATH", "./crypto-config/peerOrganizations/hospital1.medical-network.com/users/User1@hospital1.medical-network.com/msp/keystore")
-
-	keyFiles, err := filepath.Glob(filepath.Join(keyPath, "*_sk"))
-	if err != nil || len(keyFiles) == 0 {
-		return nil, fmt.Errorf("failed to find private key")
+	keyPath := os.Getenv("FABRIC_KEY_PATH")
+	if keyPath == "" {
+		return nil, fmt.Errorf("FABRIC_KEY_PATH is not set")
 	}
 
-	key, err := os.ReadFile(keyFiles[0])
+	privateKeyPEM, err := os.ReadFile(keyPath)
 	if err != nil {
 		return nil, fmt.Errorf("failed to read private key: %w", err)
 	}
 
-	// Parse private key
-	privateKey, err := identity.PrivateKeyFromPEM(key)
+	privateKey, err := identity.PrivateKeyFromPEM(privateKeyPEM)
 	if err != nil {
 		return nil, fmt.Errorf("failed to parse private key: %w", err)
 	}
@@ -225,19 +210,4 @@ func QueryContract(ctx context.Context, contract *client.Contract, function stri
 		return nil, ExtractError(err)
 	}
 	return result, nil
-}
-
-// ParseCertificate parses an X.509 certificate
-func ParseCertificate(certPEM []byte) (*x509.Certificate, error) {
-	block, _ := pem.Decode(certPEM)
-	if block == nil {
-		return nil, fmt.Errorf("failed to parse certificate PEM")
-	}
-
-	cert, err := x509.ParseCertificate(block.Bytes)
-	if err != nil {
-		return nil, fmt.Errorf("failed to parse certificate: %w", err)
-	}
-
-	return cert, nil
 }

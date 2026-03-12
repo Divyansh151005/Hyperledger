@@ -35,6 +35,19 @@ usage() {
     exit 1
 }
 
+# Detect docker compose command (v2 plugin or v1 standalone)
+detect_compose_cmd() {
+    if docker compose version &> /dev/null; then
+        echo "docker compose"
+    elif command -v docker-compose &> /dev/null; then
+        echo "docker-compose"
+    else
+        echo ""
+    fi
+}
+
+DOCKER_COMPOSE_CMD="$(detect_compose_cmd)"
+
 # Function to check prerequisites
 check_prerequisites() {
     if ! command -v docker &> /dev/null; then
@@ -42,8 +55,8 @@ check_prerequisites() {
         exit 1
     fi
     
-    if ! command -v docker-compose &> /dev/null; then
-        echo -e "${RED}Error: Docker Compose is not installed${NC}"
+    if [[ -z "${DOCKER_COMPOSE_CMD}" ]]; then
+        echo -e "${RED}Error: Docker Compose is not installed (try: docker compose or docker-compose)${NC}"
         exit 1
     fi
     
@@ -63,23 +76,23 @@ start_network() {
     
     # Start CAs first
     echo -e "${BLUE}Starting Certificate Authorities...${NC}"
-    docker-compose -f "${CA_COMPOSE}" up -d
+    ${DOCKER_COMPOSE_CMD} -f "${CA_COMPOSE}" --project-directory "${DOCKER_DIR}" up -d --force-recreate
     
     # Wait for CAs to be ready
     echo -e "${YELLOW}Waiting for CAs to be ready...${NC}"
     sleep 5
     
-    # Start orderers
+    # Start orderers (do not use --remove-orphans: each compose file is separate, so CAs would be removed)
     echo -e "${BLUE}Starting Orderer nodes...${NC}"
-    docker-compose -f "${ORDERER_COMPOSE}" up -d
+    ${DOCKER_COMPOSE_CMD} -f "${ORDERER_COMPOSE}" --project-directory "${DOCKER_DIR}" up -d --force-recreate orderer0.medical-network.com orderer1.medical-network.com orderer2.medical-network.com
     
     # Wait for orderers to be ready
     echo -e "${YELLOW}Waiting for Orderers to be ready...${NC}"
     sleep 10
     
-    # Start peers
+    # Start peers (do not use --remove-orphans: orderers would be removed)
     echo -e "${BLUE}Starting Peer nodes...${NC}"
-    docker-compose -f "${PEER_COMPOSE}" up -d
+    ${DOCKER_COMPOSE_CMD} -f "${PEER_COMPOSE}" --project-directory "${DOCKER_DIR}" up -d --force-recreate
     
     echo -e "${GREEN}========================================${NC}"
     echo -e "${GREEN}Network started successfully!${NC}"
@@ -96,9 +109,9 @@ stop_network() {
     echo -e "${YELLOW}Stopping Medical Network${NC}"
     echo -e "${YELLOW}========================================${NC}"
     
-    docker-compose -f "${PEER_COMPOSE}" down
-    docker-compose -f "${ORDERER_COMPOSE}" down
-    docker-compose -f "${CA_COMPOSE}" down
+    ${DOCKER_COMPOSE_CMD} -f "${PEER_COMPOSE}" --project-directory "${DOCKER_DIR}" down
+    ${DOCKER_COMPOSE_CMD} -f "${ORDERER_COMPOSE}" --project-directory "${DOCKER_DIR}" down
+    ${DOCKER_COMPOSE_CMD} -f "${CA_COMPOSE}" --project-directory "${DOCKER_DIR}" down
     
     echo -e "${GREEN}Network stopped successfully!${NC}"
 }
@@ -126,9 +139,9 @@ clean_network() {
     fi
     
     # Stop and remove containers
-    docker-compose -f "${PEER_COMPOSE}" down -v
-    docker-compose -f "${ORDERER_COMPOSE}" down -v
-    docker-compose -f "${CA_COMPOSE}" down -v
+    ${DOCKER_COMPOSE_CMD} -f "${PEER_COMPOSE}" --project-directory "${DOCKER_DIR}" down -v
+    ${DOCKER_COMPOSE_CMD} -f "${ORDERER_COMPOSE}" --project-directory "${DOCKER_DIR}" down -v
+    ${DOCKER_COMPOSE_CMD} -f "${CA_COMPOSE}" --project-directory "${DOCKER_DIR}" down -v
     
     # Remove network if it exists
     docker network rm medical-network 2>/dev/null || true
@@ -139,7 +152,7 @@ clean_network() {
 # Function to show logs
 show_logs() {
     echo -e "${BLUE}Showing network logs (Ctrl+C to exit)...${NC}"
-    docker-compose -f "${CA_COMPOSE}" -f "${ORDERER_COMPOSE}" -f "${PEER_COMPOSE}" logs -f
+    ${DOCKER_COMPOSE_CMD} -f "${CA_COMPOSE}" -f "${ORDERER_COMPOSE}" -f "${PEER_COMPOSE}" --project-directory "${DOCKER_DIR}" logs -f
 }
 
 # Main script logic

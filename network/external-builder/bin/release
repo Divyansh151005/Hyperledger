@@ -1,0 +1,8 @@
+#!/bin/bash
+set -e
+
+BUILD_OUTPUT_DIR="$1"
+RELEASE_OUTPUT_DIR="$2"
+
+mkdir -p "$RELEASE_OUTPUT_DIR"
+cp -r "$BUILD_OUTPUT_DIR"/* "$RELEASE_OUTPUT_DIR/" 2>/dev/null || true

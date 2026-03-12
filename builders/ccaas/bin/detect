@@ -1,0 +1,10 @@
+#!/bin/bash
+set -e
+
+METADATA=$2/metadata.json
+
+if grep -q '"type"[[:space:]]*:[[:space:]]*"external"' "$METADATA"; then
+  exit 0
+fi
+
+exit 1
