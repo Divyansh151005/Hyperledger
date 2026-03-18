@@ -1,4 +1,13 @@
 export type Role = "hospital" | "researcher" | "patient" | "regulator";
+export type StatusBadge =
+  | "PENDING"
+  | "PENDING_HOSPITAL_APPROVAL"
+  | "PENDING_PATIENT_APPROVAL"
+  | "APPROVED"
+  | "ACTIVE"
+  | "EXPIRED"
+  | "REVOKED"
+  | "REJECTED";
 
 export type ActivityItem = {
   id: string;
@@ -16,7 +25,10 @@ export type UploadResponse = {
 export type PendingRequest = {
   requestId: string;
   recordId: string;
+  patientId?: string;
+  hospitalID?: string;
   researcherWallet: string;
+  status?: StatusBadge;
   requestedAt: string;
 };
 
@@ -46,8 +58,19 @@ export type PatientConsent = {
   consentId: string;
   requestId: string;
   recordId: string;
+  patientId?: string;
   researcherWallet: string;
-  approverWallet: string;
-  expiresAt: string;
-  status: string;
+  hospitalID?: string;
+  expiry: number;
+  status: StatusBadge;
+};
+
+export type UploadRequest = {
+  requestId: string;
+  patientId: string;
+  hospitalID: string;
+  fileName: string;
+  status: StatusBadge;
+  createdAt: string;
+  recordId?: string | null;
 };

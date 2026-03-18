@@ -7,11 +7,16 @@ type ActivityFeedProps = {
 };
 
 const typeColorMap: Record<string, string> = {
-  upload: "bg-blue-50 text-blue-700",
-  request: "bg-yellow-50 text-yellow-700",
-  approval: "bg-emerald-50 text-emerald-700",
-  expired: "bg-red-50 text-red-700",
-  retrieval: "bg-purple-50 text-purple-700"
+  upload_request_created: "bg-blue-50 text-blue-700",
+  patient_approved_upload: "bg-emerald-50 text-emerald-700",
+  aes_key_generated: "bg-indigo-50 text-indigo-700",
+  key_encrypted: "bg-purple-50 text-purple-700",
+  access_request_created: "bg-yellow-50 text-yellow-700",
+  hospital_approved_access: "bg-cyan-50 text-cyan-700",
+  key_shared: "bg-indigo-50 text-indigo-700",
+  access_granted: "bg-emerald-50 text-emerald-700",
+  access_revoked: "bg-red-50 text-red-700",
+  access_expired: "bg-orange-50 text-orange-700"
 };
 
 export function ActivityFeed({ items }: ActivityFeedProps) {

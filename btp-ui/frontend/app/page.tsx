@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { BrowserProvider } from "ethers";
 import { Dashboard } from "@/components/dashboard";
 import { LoginCard } from "@/components/login-card";
 import { Role } from "@/lib/types";
@@ -36,8 +35,13 @@ export default function HomePage() {
 
     setIsConnecting(true);
     try {
-      const provider = new BrowserProvider(window.ethereum as never);
-      const accounts = (await provider.send("eth_requestAccounts", [])) as string[];
+      await window.ethereum.request({
+        method: "wallet_requestPermissions",
+        params: [{ eth_accounts: {} }]
+      });
+      const accounts = (await window.ethereum.request({
+        method: "eth_requestAccounts"
+      })) as string[];
       if (accounts?.[0]) {
         setWalletAddress(accounts[0]);
         window.localStorage.setItem("wallet", accounts[0]);
@@ -57,14 +61,23 @@ export default function HomePage() {
     setIsAuthenticated(true);
   }
 
-  function logout() {
+  function returnToRoleSelection() {
     setIsAuthenticated(false);
-    setWalletAddress("");
     setSelectedRole("");
     window.localStorage.removeItem("role");
   }
 
-  function disconnectWallet() {
+  async function disconnectWallet() {
+    if (window.ethereum) {
+      try {
+        await window.ethereum.request({
+          method: "wallet_revokePermissions",
+          params: [{ eth_accounts: {} }]
+        });
+      } catch {
+        // Some wallet providers do not support revoke permissions.
+      }
+    }
     setWalletAddress("");
     setSelectedRole("");
     setIsAuthenticated(false);
@@ -79,6 +92,7 @@ export default function HomePage() {
         role={selectedRole}
         isConnecting={isConnecting}
         onConnectWallet={connectWallet}
+        onDisconnectWallet={disconnectWallet}
         onSelectRole={setSelectedRole}
         onContinue={handleContinue}
       />
@@ -89,8 +103,8 @@ export default function HomePage() {
     <Dashboard
       walletAddress={walletAddress}
       role={selectedRole}
-      onLogout={logout}
-      onDisconnect={disconnectWallet}
+      onLogout={returnToRoleSelection}
+      onDisconnect={returnToRoleSelection}
     />
   );
 }

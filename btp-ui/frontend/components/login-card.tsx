@@ -13,6 +13,7 @@ type LoginCardProps = {
   role: Role | "";
   isConnecting: boolean;
   onConnectWallet: () => void;
+  onDisconnectWallet: () => void;
   onSelectRole: (role: Role) => void;
   onContinue: () => void;
 };
@@ -22,6 +23,7 @@ export function LoginCard({
   role,
   isConnecting,
   onConnectWallet,
+  onDisconnectWallet,
   onSelectRole,
   onContinue
 }: LoginCardProps) {
@@ -64,6 +66,13 @@ export function LoginCard({
                   <p className="rounded-lg border border-emerald-100 bg-emerald-50 px-4 py-2 text-sm text-emerald-700">
                     Connected wallet: {truncateAddress(walletAddress)}
                   </p>
+                  <Button
+                    variant="outline"
+                    className="w-full"
+                    onClick={onDisconnectWallet}
+                  >
+                    Disconnect Wallet
+                  </Button>
                   <div className="space-y-2">
                     <label className="text-sm font-medium text-slate-600">
                       Select Role

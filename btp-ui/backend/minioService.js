@@ -49,11 +49,30 @@ async function uploadMedicalRecord({ patientId, recordId, fileBuffer, originalNa
   return { objectName, hash: computeHash(fileBuffer), extension: ext, contentType };
 }
 
+async function uploadEncryptedRecord({ recordId, encryptedBuffer }) {
+  const objectName = `reports/${recordId}.enc`;
+  await ensureBucket();
+  await client.putObject(MINIO_BUCKET, objectName, encryptedBuffer, encryptedBuffer.length, {
+    "Content-Type": "application/octet-stream"
+  });
+  return {
+    objectName,
+    hash: computeHash(encryptedBuffer),
+    extension: ".enc",
+    contentType: "application/octet-stream"
+  };
+}
+
 async function downloadMedicalRecord(objectName) {
   const stream = await client.getObject(MINIO_BUCKET, objectName);
   const chunks = [];
   for await (const chunk of stream) chunks.push(chunk);
   return Buffer.concat(chunks);
+}
+
+async function getMedicalRecordStream(objectName) {
+  await ensureBucket();
+  return client.getObject(MINIO_BUCKET, objectName);
 }
 
 async function listMedicalReports() {
@@ -73,7 +92,9 @@ async function listMedicalReports() {
 module.exports = {
   MINIO_BUCKET,
   uploadMedicalRecord,
+  uploadEncryptedRecord,
   downloadMedicalRecord,
+  getMedicalRecordStream,
   computeHash,
   listMedicalReports
 };

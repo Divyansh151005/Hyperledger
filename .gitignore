@@ -22,3 +22,22 @@ minio-data/
 
 # OS
 .DS_Store
+
+# Next.js
+.next/
+out/
+
+# Node
+node_modules/
+
+# Env
+.env
+
+# Keys (VERY IMPORTANT)
+btp-ui/backend/keys/
+
+# Logs
+*.log
+
+# Build cache
+*.tsbuildinfo

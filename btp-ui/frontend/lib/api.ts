@@ -5,6 +5,7 @@ import {
   MinioFile,
   PendingRequest,
   PatientConsent,
+  UploadRequest,
   UploadResponse
 } from "@/lib/types";
 
@@ -34,7 +35,7 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
 }
 
 export async function uploadRecord(formData: FormData) {
-  return request<UploadResponse>("/uploadRecord", {
+  return request<{ requestId: string; status: string }>("/upload-request", {
     method: "POST",
     body: formData
   });
@@ -44,7 +45,18 @@ export async function requestAccess(payload: {
   recordId: string;
   researcherWallet: string;
 }) {
-  return request<{ message: string; requestId: string }>("/requestAccess", {
+  return request<{ message: string; requestId: string; status: string }>("/request-access", {
+    method: "POST",
+    body: JSON.stringify(payload),
+    headers: { "Content-Type": "application/json" }
+  });
+}
+
+export async function approveAccessByHospital(payload: {
+  requestId: string;
+  hospitalWallet: string;
+}) {
+  return request<{ message: string; status: string }>("/hospital/approve-access", {
     method: "POST",
     body: JSON.stringify(payload),
     headers: { "Content-Type": "application/json" }
@@ -53,12 +65,25 @@ export async function requestAccess(payload: {
 
 export async function approveAccess(payload: {
   requestId: string;
-  recordId: string;
-  researcherWallet: string;
+  patientId: string;
   expirySeconds: number;
-  approverWallet: string;
+  expiryTimestamp?: number;
 }) {
-  return request<{ message: string; consentId: string }>("/approveAccess", {
+  return request<{ message: string; consentId: string; status: string; expiry: number }>(
+    "/patient/approve-access",
+    {
+      method: "POST",
+      body: JSON.stringify(payload),
+      headers: { "Content-Type": "application/json" }
+    }
+  );
+}
+
+export async function rejectAccessByPatient(payload: {
+  requestId: string;
+  patientId: string;
+}) {
+  return request<{ message: string; status: string }>("/patient/reject-access", {
     method: "POST",
     body: JSON.stringify(payload),
     headers: { "Content-Type": "application/json" }
@@ -122,6 +147,11 @@ export async function retrieveRecordById(
   };
 }
 
+export function getPreviewRecordUrl(recordId: string, researcherWallet: string, role: string) {
+  const query = new URLSearchParams({ researcherWallet, role });
+  return `${API_BASE_URL}/preview/${recordId}?${query.toString()}`;
+}
+
 export async function getRecords() {
   return request<{ records: Array<Record<string, string>> }>("/records");
 }
@@ -136,7 +166,7 @@ export async function getActivity() {
 }
 
 export async function getPendingRequests() {
-  return request<{ requests: PendingRequest[] }>("/pendingRequests");
+  return request<{ requests: PendingRequest[] }>("/hospital/access-requests");
 }
 
 export async function getPatientAccessRequests(patientId: string) {
@@ -147,6 +177,30 @@ export async function getPatientAccessRequests(patientId: string) {
 export async function getPatientConsents(patientId: string) {
   const query = new URLSearchParams({ patientId });
   return request<{ consents: PatientConsent[] }>(`/patient/consents?${query.toString()}`);
+}
+
+export async function getPatientUploadRequests(patientId: string) {
+  const query = new URLSearchParams({ patientId });
+  return request<{ requests: UploadRequest[] }>(`/patient/upload-requests?${query.toString()}`);
+}
+
+export async function approveUploadByPatient(payload: { requestId: string; patientId: string }) {
+  return request<UploadResponse & { minioPath: string; status: string; requestId: string }>(
+    "/patient/approve-upload",
+    {
+      method: "POST",
+      body: JSON.stringify(payload),
+      headers: { "Content-Type": "application/json" }
+    }
+  );
+}
+
+export async function rejectUploadByPatient(payload: { requestId: string; patientId: string }) {
+  return request<{ message: string; status: string }>("/patient/reject-upload", {
+    method: "POST",
+    body: JSON.stringify(payload),
+    headers: { "Content-Type": "application/json" }
+  });
 }
 
 export async function verifyIntegrity(payload: {
@@ -188,30 +242,17 @@ export async function verifyHash(recordId: string) {
   }>(`/verify-hash/${recordId}`);
 }
 
-export async function grantConsent(payload: {
-  requestId: string;
-  expirySeconds: number;
-  patientWallet: string;
-}) {
-  return request<{ message: string; consentId: string }>("/grant-consent", {
-    method: "POST",
-    body: JSON.stringify(payload),
-    headers: { "Content-Type": "application/json" }
-  });
-}
-
-export async function rejectConsent(payload: { requestId: string }) {
-  return request<{ message: string }>("/reject-consent", {
-    method: "POST",
-    body: JSON.stringify(payload),
-    headers: { "Content-Type": "application/json" }
-  });
-}
-
 export async function revokeConsent(payload: { consentId: string }) {
-  return request<{ message: string }>("/revoke-consent", {
+  return request<{ message: string; status: string }>("/patient/revoke-access", {
     method: "POST",
     body: JSON.stringify(payload),
     headers: { "Content-Type": "application/json" }
   });
+}
+
+export async function getResearcherAccess(recordId: string, researcherWallet: string) {
+  const query = new URLSearchParams({ recordId, researcherWallet });
+  return request<{ status: string; expiresAt: number; remainingMs: number }>(
+    `/researcher/access?${query.toString()}`
+  );
 }

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import {
   Blocks,
@@ -19,24 +19,29 @@ import {
 } from "lucide-react";
 import {
   approveAccess,
+  approveAccessByHospital,
+  approveUploadByPatient,
+  getPreviewRecordUrl,
   getActivity,
   getBlockchainInfo,
   getLatestTransactions,
   getMinioFiles,
   getPatientAccessRequests,
   getPatientConsents,
+  getPatientUploadRequests,
   getPatientRecords,
   getPendingRequests,
+  getResearcherAccess,
   getRecords,
   getTimeline,
-  grantConsent,
   requestAccess,
+  rejectAccessByPatient,
+  rejectUploadByPatient,
   retrieveRecord,
   retrieveRecordById,
   revokeConsent,
   uploadRecord,
-  verifyHash,
-  rejectConsent
+  verifyHash
 } from "@/lib/api";
 import {
   ActivityItem,
@@ -45,7 +50,9 @@ import {
   MinioFile,
   PatientConsent,
   PendingRequest,
-  Role
+  Role,
+  UploadRequest,
+  StatusBadge
 } from "@/lib/types";
 import { truncateAddress } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -53,6 +60,7 @@ import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { ActivityFeed } from "@/components/activity-feed";
+import { PDFPreviewModal } from "@/components/pdf-preview-modal";
 
 type DashboardProps = {
   walletAddress: string;
@@ -129,6 +137,27 @@ function shortHash(raw: string) {
   return `${raw.slice(0, 12)}...${raw.slice(-8)}`;
 }
 
+function statusBadgeClass(status?: string) {
+  const normalized = String(status || "").toUpperCase() as StatusBadge;
+  switch (normalized) {
+    case "PENDING":
+    case "PENDING_HOSPITAL_APPROVAL":
+    case "PENDING_PATIENT_APPROVAL":
+      return "bg-yellow-50 text-yellow-700";
+    case "APPROVED":
+    case "ACTIVE":
+      return "bg-emerald-50 text-emerald-700";
+    case "EXPIRED":
+      return "bg-orange-50 text-orange-700";
+    case "REVOKED":
+      return "bg-red-50 text-red-700";
+    case "REJECTED":
+      return "bg-slate-100 text-slate-700";
+    default:
+      return "bg-slate-100 text-slate-700";
+  }
+}
+
 export function Dashboard({ walletAddress, role, onLogout, onDisconnect }: DashboardProps) {
   const [activePanel, setActivePanel] = useState<PanelType>("upload");
   const [activity, setActivity] = useState<ActivityItem[]>([]);
@@ -151,10 +180,10 @@ export function Dashboard({ walletAddress, role, onLogout, onDisconnect }: Dashb
   const [patientId, setPatientId] = useState("");
   const [uploadFileState, setUploadFileState] = useState<File | null>(null);
   const [uploadResult, setUploadResult] = useState<{
-    transactionId: string;
-    recordId: string;
-    fileHash: string;
+    requestId: string;
+    status: string;
   } | null>(null);
+  const uploadFileInputRef = useRef<HTMLInputElement>(null);
 
   const [requestRecordId, setRequestRecordId] = useState("");
   const [retrieveRecordId, setRetrieveRecordId] = useState("");
@@ -168,8 +197,17 @@ export function Dashboard({ walletAddress, role, onLogout, onDisconnect }: Dashb
   const [approveModalOpen, setApproveModalOpen] = useState(false);
   const [selectedRequest, setSelectedRequest] = useState<PendingRequest | null>(null);
   const [expirySeconds, setExpirySeconds] = useState(3600);
+  const [previewModalOpen, setPreviewModalOpen] = useState(false);
+  const [previewRecordId, setPreviewRecordId] = useState("");
+  const [previewUrl, setPreviewUrl] = useState("");
+  const [researcherAccessInfo, setResearcherAccessInfo] = useState<{
+    status: string;
+    expiresAt: number;
+    remainingMs: number;
+  } | null>(null);
 
   const [patientRecords, setPatientRecords] = useState<Array<Record<string, string>>>([]);
+  const [patientUploadRequests, setPatientUploadRequests] = useState<UploadRequest[]>([]);
   const [patientRequests, setPatientRequests] = useState<PendingRequest[]>([]);
   const [patientConsents, setPatientConsents] = useState<PatientConsent[]>([]);
 
@@ -217,12 +255,14 @@ export function Dashboard({ walletAddress, role, onLogout, onDisconnect }: Dashb
   async function refreshPatientData() {
     if (!patientId) return;
     try {
-      const [recordsRes, requestsRes, consentsRes] = await Promise.all([
+      const [recordsRes, uploadRequestsRes, requestsRes, consentsRes] = await Promise.all([
         getPatientRecords(patientId),
+        getPatientUploadRequests(patientId),
         getPatientAccessRequests(patientId),
         getPatientConsents(patientId)
       ]);
       setPatientRecords(recordsRes.records || []);
+      setPatientUploadRequests(uploadRequestsRes.requests || []);
       setPatientRequests(requestsRes.requests || []);
       setPatientConsents(consentsRes.consents || []);
     } catch (err) {
@@ -257,7 +297,8 @@ export function Dashboard({ walletAddress, role, onLogout, onDisconnect }: Dashb
     () =>
       panels.filter((panel) => {
         if (panel.id === "upload" || panel.id === "approve") return isHospital;
-        if (panel.id === "request" || panel.id === "retrieve") return isResearcher;
+        if (panel.id === "request") return isResearcher;
+        if (panel.id === "retrieve") return isResearcher || isHospital;
         if (panel.id === "patient") return isPatient;
         return true;
       }),
@@ -280,17 +321,47 @@ export function Dashboard({ walletAddress, role, onLogout, onDisconnect }: Dashb
     try {
       const formData = new FormData();
       formData.append("patientId", patientId);
-      formData.append("walletAddress", walletAddress);
+      formData.append("hospitalID", walletAddress);
       formData.append("file", uploadFileState);
       const response = await uploadRecord(formData);
       setUploadResult(response);
-      setStatus("Transaction successful");
+      setStatus("Upload request submitted. Waiting for patient approval.");
       refreshData();
+      refreshPatientData();
     } catch (err) {
       setError(err instanceof Error ? err.message : "Upload failed");
     } finally {
       setBusy("");
     }
+  }
+
+  async function handleChooseUploadFile() {
+    try {
+      const pickerWindow = window as Window & {
+        showOpenFilePicker?: (options?: {
+          multiple?: boolean;
+          excludeAcceptAllOption?: boolean;
+          types?: Array<{ description?: string; accept: Record<string, string[]> }>;
+        }) => Promise<Array<{ getFile: () => Promise<File> }>>;
+      };
+
+      if (pickerWindow.showOpenFilePicker) {
+        const [handle] = await pickerWindow.showOpenFilePicker({
+          multiple: false,
+          excludeAcceptAllOption: false,
+          types: [{ description: "PDF files", accept: { "application/pdf": [".pdf"] } }]
+        });
+        if (handle) {
+          const file = await handle.getFile();
+          setUploadFileState(file);
+          return;
+        }
+      }
+    } catch (err) {
+      if (err instanceof DOMException && err.name === "AbortError") return;
+    }
+
+    uploadFileInputRef.current?.click();
   }
 
   async function handleRequestAccess() {
@@ -320,14 +391,11 @@ export function Dashboard({ walletAddress, role, onLogout, onDisconnect }: Dashb
     setError("");
     await runTxAnimation();
     try {
-      const response = await approveAccess({
+      const response = await approveAccessByHospital({
         requestId: selectedRequest.requestId,
-        recordId: selectedRequest.recordId,
-        researcherWallet: selectedRequest.researcherWallet,
-        expirySeconds,
-        approverWallet: walletAddress
+        hospitalWallet: walletAddress
       });
-      setStatus(`Consent granted successfully (${response.consentId}).`);
+      setStatus(`Hospital approval complete (${response.status}). Awaiting patient approval.`);
       setApproveModalOpen(false);
       setSelectedRequest(null);
       refreshData();
@@ -340,6 +408,24 @@ export function Dashboard({ walletAddress, role, onLogout, onDisconnect }: Dashb
 
   async function handleRetrieveRecord() {
     if (!retrieveRecordId) return;
+    if (isResearcher) {
+      setBusy("retrieve");
+      setError("");
+      setStatus("Checking consent + key validity...");
+      try {
+        const access = await checkResearcherAccess(retrieveRecordId);
+        setStatus(`Access ${access.status}. Opening secure preview...`);
+        setPreviewRecordId(retrieveRecordId);
+        setPreviewUrl(getPreviewRecordUrl(retrieveRecordId, walletAddress, role));
+        setPreviewModalOpen(true);
+      } catch (err) {
+        setError(err instanceof Error ? err.message : "Access denied");
+      } finally {
+        setBusy("");
+      }
+      return;
+    }
+
     setBusy("retrieve");
     setStatus("");
     setError("");
@@ -379,6 +465,14 @@ export function Dashboard({ walletAddress, role, onLogout, onDisconnect }: Dashb
     setStatus("");
     setError("");
     try {
+      if (isResearcher) {
+        await checkResearcherAccess(recordId);
+        setPreviewRecordId(recordId);
+        setPreviewUrl(getPreviewRecordUrl(recordId, walletAddress, role));
+        setPreviewModalOpen(true);
+        setStatus(`Previewing ${recordId} in secure mode`);
+        return;
+      }
       const result = await retrieveRecordById(recordId, walletAddress, role, preview);
       if (preview) openBlobInBrowser(result.blob);
       else downloadBlob(result.fileName, result.blob);
@@ -390,14 +484,53 @@ export function Dashboard({ walletAddress, role, onLogout, onDisconnect }: Dashb
     }
   }
 
+  async function handlePatientApproveUpload(requestId: string) {
+    setBusy(`approve-upload-${requestId}`);
+    setStatus("");
+    setError("");
+    await runTxAnimation();
+    try {
+      const response = await approveUploadByPatient({ requestId, patientId });
+      setStatus(
+        `Upload approved. Record ${response.recordId} encrypted and stored at ${response.minioPath}.`
+      );
+      refreshData();
+      refreshPatientData();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Upload approval failed");
+    } finally {
+      setBusy("");
+    }
+  }
+
+  async function handlePatientRejectUpload(requestId: string) {
+    setBusy(`reject-upload-${requestId}`);
+    setStatus("");
+    setError("");
+    try {
+      await rejectUploadByPatient({ requestId, patientId });
+      setStatus("Upload request rejected by patient.");
+      refreshData();
+      refreshPatientData();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Upload rejection failed");
+    } finally {
+      setBusy("");
+    }
+  }
+
   async function handlePatientGrant(requestId: string) {
     setBusy(`grant-${requestId}`);
     setStatus("");
     setError("");
     await runTxAnimation();
     try {
-      await grantConsent({ requestId, expirySeconds, patientWallet: walletAddress });
-      setStatus("Consent granted by patient.");
+      const response = await approveAccess({
+        requestId,
+        patientId,
+        expirySeconds
+      });
+      setStatus(`Consent granted by patient. Status: ${response.status}`);
       refreshData();
       refreshPatientData();
     } catch (err) {
@@ -412,7 +545,7 @@ export function Dashboard({ walletAddress, role, onLogout, onDisconnect }: Dashb
     setStatus("");
     setError("");
     try {
-      await rejectConsent({ requestId });
+      await rejectAccessByPatient({ requestId, patientId });
       setStatus("Request rejected.");
       refreshData();
       refreshPatientData();
@@ -439,6 +572,17 @@ export function Dashboard({ walletAddress, role, onLogout, onDisconnect }: Dashb
     }
   }
 
+  async function checkResearcherAccess(recordId: string) {
+    try {
+      const result = await getResearcherAccess(recordId, walletAddress);
+      setResearcherAccessInfo(result);
+      return result;
+    } catch (err) {
+      setResearcherAccessInfo(null);
+      throw err;
+    }
+  }
+
   const latestBlockTxCount = useMemo(
     () =>
       blockchainInfo.transactionCount ||
@@ -456,10 +600,10 @@ export function Dashboard({ walletAddress, role, onLogout, onDisconnect }: Dashb
           <p className="text-xs text-slate-500">Role: {role}</p>
           <div className="mt-3 flex gap-2">
             <Button size="sm" variant="outline" onClick={onDisconnect}>
-              Disconnect
+              Switch Role
             </Button>
             <Button size="sm" variant="outline" onClick={onLogout}>
-              Logout
+              Back to Home
             </Button>
           </div>
           <div className="mt-5 space-y-2">
@@ -552,11 +696,21 @@ export function Dashboard({ walletAddress, role, onLogout, onDisconnect }: Dashb
                       value={patientId}
                       onChange={(event) => setPatientId(event.target.value)}
                     />
-                    <Input
-                      type="file"
-                      accept=".pdf"
-                      onChange={(event) => setUploadFileState(event.target.files?.[0] || null)}
-                    />
+                    <div className="flex flex-wrap items-center gap-3">
+                      <Button type="button" variant="outline" onClick={handleChooseUploadFile}>
+                        Choose File
+                      </Button>
+                      <input
+                        ref={uploadFileInputRef}
+                        type="file"
+                        accept=".pdf,application/pdf"
+                        className="hidden"
+                        onChange={(event) => setUploadFileState(event.target.files?.[0] || null)}
+                      />
+                      <span className="text-sm text-slate-500">
+                        {uploadFileState ? uploadFileState.name : "No file selected"}
+                      </span>
+                    </div>
                     <Button
                       disabled={busy === "upload" || !uploadFileState || !patientId}
                       onClick={handleUploadRecord}
@@ -574,11 +728,15 @@ export function Dashboard({ walletAddress, role, onLogout, onDisconnect }: Dashb
                       <div className="rounded-lg border border-emerald-100 bg-emerald-50 p-4 text-sm text-emerald-700">
                         <div className="mb-2 flex items-center gap-2">
                           <CheckCircle2 className="h-4 w-4" />
-                          <span>Transaction successful</span>
+                          <span>Upload request created</span>
                         </div>
-                        <p>Transaction ID: {uploadResult.transactionId}</p>
-                        <p>Record ID: {uploadResult.recordId}</p>
-                        <p className="break-all">File hash: {uploadResult.fileHash}</p>
+                        <p>Request ID: {uploadResult.requestId}</p>
+                        <p>
+                          Status:{" "}
+                          <Badge className={statusBadgeClass(uploadResult.status)}>
+                            {uploadResult.status}
+                          </Badge>
+                        </p>
                       </div>
                     ) : null}
                   </motion.div>
@@ -622,13 +780,14 @@ export function Dashboard({ walletAddress, role, onLogout, onDisconnect }: Dashb
                           <tr>
                             <th className="px-3 py-2">Record ID</th>
                             <th className="px-3 py-2">Researcher Wallet</th>
+                            <th className="px-3 py-2">Status</th>
                             <th className="px-3 py-2">Action</th>
                           </tr>
                         </thead>
                         <tbody>
                           {pendingRequests.length === 0 ? (
                             <tr>
-                              <td className="px-3 py-3 text-slate-500" colSpan={3}>
+                              <td className="px-3 py-3 text-slate-500" colSpan={4}>
                                 No pending requests.
                               </td>
                             </tr>
@@ -637,6 +796,11 @@ export function Dashboard({ walletAddress, role, onLogout, onDisconnect }: Dashb
                               <tr key={item.requestId} className="border-t border-slate-100">
                                 <td className="px-3 py-2">{item.recordId}</td>
                                 <td className="px-3 py-2">{truncateAddress(item.researcherWallet)}</td>
+                                <td className="px-3 py-2">
+                                  <Badge className={statusBadgeClass(item.status)}>
+                                    {item.status || "PENDING"}
+                                  </Badge>
+                                </td>
                                 <td className="px-3 py-2">
                                   <Button
                                     size="sm"
@@ -675,8 +839,25 @@ export function Dashboard({ walletAddress, role, onLogout, onDisconnect }: Dashb
                       onClick={handleRetrieveRecord}
                       disabled={busy === "retrieve" || !retrieveRecordId}
                     >
-                      {busy === "retrieve" ? "Retrieving..." : "Retrieve PDF"}
+                      {isResearcher
+                        ? "Preview Record"
+                        : busy === "retrieve"
+                          ? "Retrieving..."
+                          : "Retrieve PDF"}
                     </Button>
+                    {isResearcher ? (
+                      <div className="rounded-lg border border-blue-100 bg-blue-50 p-3 text-sm text-blue-700">
+                        <p>Preview-only mode enabled (no downloads).</p>
+                        {researcherAccessInfo ? (
+                          <p>
+                            Access expiry countdown:{" "}
+                            {Math.max(0, Math.floor(researcherAccessInfo.remainingMs / 1000))}s
+                          </p>
+                        ) : (
+                          <p>Access check will run before opening preview.</p>
+                        )}
+                      </div>
+                    ) : null}
                     <div className="space-y-2 rounded-lg bg-slate-50 p-4">
                       <p className="text-sm font-medium text-slate-700">Verify Integrity</p>
                       <Input
@@ -759,6 +940,71 @@ export function Dashboard({ walletAddress, role, onLogout, onDisconnect }: Dashb
                     </div>
 
                     <div>
+                      <p className="mb-2 text-sm font-medium text-slate-700">Upload Approval Requests</p>
+                      <div className="overflow-hidden rounded-xl border border-slate-200">
+                        <table className="w-full text-sm">
+                          <thead className="bg-slate-50 text-left text-slate-500">
+                            <tr>
+                              <th className="px-3 py-2">Request</th>
+                              <th className="px-3 py-2">Hospital</th>
+                              <th className="px-3 py-2">File</th>
+                              <th className="px-3 py-2">Status</th>
+                              <th className="px-3 py-2">Approve</th>
+                              <th className="px-3 py-2">Reject</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {patientUploadRequests.length === 0 ? (
+                              <tr>
+                                <td className="px-3 py-3 text-slate-500" colSpan={6}>
+                                  No upload approvals pending.
+                                </td>
+                              </tr>
+                            ) : (
+                              patientUploadRequests.map((request) => (
+                                <tr key={request.requestId} className="border-t border-slate-100">
+                                  <td className="px-3 py-2">{request.requestId}</td>
+                                  <td className="px-3 py-2">{truncateAddress(request.hospitalID)}</td>
+                                  <td className="px-3 py-2">{request.fileName}</td>
+                                  <td className="px-3 py-2">
+                                    <Badge className={statusBadgeClass(request.status)}>
+                                      {request.status}
+                                    </Badge>
+                                  </td>
+                                  <td className="px-3 py-2">
+                                    <Button
+                                      size="sm"
+                                      onClick={() => handlePatientApproveUpload(request.requestId)}
+                                      disabled={
+                                        request.status !== "PENDING_PATIENT_APPROVAL" ||
+                                        busy === `approve-upload-${request.requestId}`
+                                      }
+                                    >
+                                      Approve
+                                    </Button>
+                                  </td>
+                                  <td className="px-3 py-2">
+                                    <Button
+                                      size="sm"
+                                      variant="outline"
+                                      onClick={() => handlePatientRejectUpload(request.requestId)}
+                                      disabled={
+                                        request.status !== "PENDING_PATIENT_APPROVAL" ||
+                                        busy === `reject-upload-${request.requestId}`
+                                      }
+                                    >
+                                      Reject
+                                    </Button>
+                                  </td>
+                                </tr>
+                              ))
+                            )}
+                          </tbody>
+                        </table>
+                      </div>
+                    </div>
+
+                    <div>
                       <p className="mb-2 text-sm font-medium text-slate-700">Access Requests</p>
                       <div className="overflow-hidden rounded-xl border border-slate-200">
                         <table className="w-full text-sm">
@@ -766,6 +1012,7 @@ export function Dashboard({ walletAddress, role, onLogout, onDisconnect }: Dashb
                             <tr>
                               <th className="px-3 py-2">Researcher Wallet</th>
                               <th className="px-3 py-2">Record</th>
+                              <th className="px-3 py-2">Status</th>
                               <th className="px-3 py-2">Approve</th>
                               <th className="px-3 py-2">Reject</th>
                             </tr>
@@ -775,6 +1022,11 @@ export function Dashboard({ walletAddress, role, onLogout, onDisconnect }: Dashb
                               <tr key={request.requestId} className="border-t border-slate-100">
                                 <td className="px-3 py-2">{truncateAddress(request.researcherWallet)}</td>
                                 <td className="px-3 py-2">{request.recordId}</td>
+                                <td className="px-3 py-2">
+                                  <Badge className={statusBadgeClass(request.status)}>
+                                    {request.status || "PENDING"}
+                                  </Badge>
+                                </td>
                                 <td className="px-3 py-2">
                                   <Button
                                     size="sm"
@@ -810,6 +1062,7 @@ export function Dashboard({ walletAddress, role, onLogout, onDisconnect }: Dashb
                               <th className="px-3 py-2">Record</th>
                               <th className="px-3 py-2">Researcher</th>
                               <th className="px-3 py-2">Expiry</th>
+                              <th className="px-3 py-2">Status</th>
                               <th className="px-3 py-2">Revoke</th>
                             </tr>
                           </thead>
@@ -819,7 +1072,12 @@ export function Dashboard({ walletAddress, role, onLogout, onDisconnect }: Dashb
                                 <td className="px-3 py-2">{consent.recordId}</td>
                                 <td className="px-3 py-2">{truncateAddress(consent.researcherWallet)}</td>
                                 <td className="px-3 py-2">
-                                  {new Date(consent.expiresAt).toLocaleString()}
+                                  {new Date(consent.expiry).toLocaleString()}
+                                </td>
+                                <td className="px-3 py-2">
+                                  <Badge className={statusBadgeClass(consent.status)}>
+                                    {consent.status}
+                                  </Badge>
                                 </td>
                                 <td className="px-3 py-2">
                                   <Button
@@ -840,13 +1098,16 @@ export function Dashboard({ walletAddress, role, onLogout, onDisconnect }: Dashb
 
                     <div className="max-w-xs">
                       <label className="mb-1 block text-xs text-slate-500">
-                        Consent expiry (seconds)
+                        Expiry selector ({Math.round(expirySeconds / 60)} minutes)
                       </label>
-                      <Input
-                        type="number"
-                        min={60}
+                      <input
+                        type="range"
+                        min={300}
+                        max={86400}
+                        step={300}
                         value={expirySeconds}
                         onChange={(event) => setExpirySeconds(Number(event.target.value))}
+                        className="w-full"
                       />
                     </div>
                   </motion.div>
@@ -861,14 +1122,19 @@ export function Dashboard({ walletAddress, role, onLogout, onDisconnect }: Dashb
                     className="space-y-4"
                   >
                     <h3 className="text-xl font-semibold text-slate-900">Off-Chain Storage (MinIO)</h3>
+                    <p className="text-sm text-slate-500">
+                      Files are stored encrypted (AES-256-CBC) and keys are managed separately.
+                    </p>
                     <div className="overflow-hidden rounded-xl border border-slate-200">
                       <table className="w-full text-sm">
                         <thead className="bg-slate-50 text-left text-slate-500">
                           <tr>
                             <th className="px-3 py-2">File Name</th>
                             <th className="px-3 py-2">Size</th>
-                            <th className="px-3 py-2">View</th>
-                            <th className="px-3 py-2">Preview PDF</th>
+                            <th className="px-3 py-2">
+                              {isResearcher ? "Preview" : "View"}
+                            </th>
+                            {!isResearcher ? <th className="px-3 py-2">Preview PDF</th> : null}
                           </tr>
                         </thead>
                         <tbody>
@@ -880,20 +1146,22 @@ export function Dashboard({ walletAddress, role, onLogout, onDisconnect }: Dashb
                                 <Button
                                   size="sm"
                                   variant="outline"
-                                  onClick={() => handleViewMinioFile(file.name, false)}
+                                  onClick={() => handleViewMinioFile(file.name, isResearcher)}
                                 >
-                                  View
+                                  {isResearcher ? "Preview" : "View"}
                                 </Button>
                               </td>
-                              <td className="px-3 py-2">
-                                <Button
-                                  size="sm"
-                                  variant="outline"
-                                  onClick={() => handleViewMinioFile(file.name, true)}
-                                >
-                                  Preview
-                                </Button>
-                              </td>
+                              {!isResearcher ? (
+                                <td className="px-3 py-2">
+                                  <Button
+                                    size="sm"
+                                    variant="outline"
+                                    onClick={() => handleViewMinioFile(file.name, true)}
+                                  >
+                                    Preview
+                                  </Button>
+                                </td>
+                              ) : null}
                             </tr>
                           ))}
                         </tbody>
@@ -1020,17 +1288,11 @@ export function Dashboard({ walletAddress, role, onLogout, onDisconnect }: Dashb
       {approveModalOpen && selectedRequest ? (
         <div className="fixed inset-0 z-40 flex items-center justify-center bg-slate-900/35 p-4">
           <Card className="w-full max-w-md space-y-4 p-6">
-            <h4 className="text-lg font-semibold text-slate-900">Grant Consent</h4>
+            <h4 className="text-lg font-semibold text-slate-900">Hospital Approval</h4>
             <p className="text-sm text-slate-500">
-              Set consent expiry time in seconds for record{" "}
+              Confirm hospital-side validation for record{" "}
               <span className="font-medium">{selectedRequest.recordId}</span>.
             </p>
-            <Input
-              type="number"
-              min={60}
-              value={expirySeconds}
-              onChange={(event) => setExpirySeconds(Number(event.target.value))}
-            />
             <div className="flex justify-end gap-2">
               <Button variant="outline" onClick={() => setApproveModalOpen(false)}>
                 Cancel
@@ -1042,6 +1304,12 @@ export function Dashboard({ walletAddress, role, onLogout, onDisconnect }: Dashb
           </Card>
         </div>
       ) : null}
+      <PDFPreviewModal
+        open={previewModalOpen}
+        recordId={previewRecordId}
+        previewUrl={previewUrl}
+        onClose={() => setPreviewModalOpen(false)}
+      />
     </div>
   );
 }
